@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -37,18 +38,25 @@ fun GameHubScreen(
   games: List<GameItem>,
   soundEngine: VaultSoundEngine,
   hapticEngine: VaultHapticEngine,
+  initialCategory: String = "ALL",
+  onOpenSettings: () -> Unit = {},
+  onOpenOnline: () -> Unit = {},
   onGamePlay: (GameItem) -> Unit,
   onGameCardClick: (GameItem) -> Unit,
   onToggleFavorite: (GameItem) -> Unit,
   modifier: Modifier = Modifier
 ) {
   var searchQuery by remember { mutableStateOf("") }
-  var selectedCategory by remember { mutableStateOf("ALL") }
-  var offlineOnlyFilter by remember { mutableStateOf(false) }
+  var selectedCategory by remember { mutableStateOf(initialCategory) }
 
-  val categories = listOf("ALL", "PUZZLE", "ARCADE", "RACING", "BOARD", "REFLEX", "FAVORITES")
+  // Sync if initialCategory changes externally (e.g. via navigation tab)
+  LaunchedEffect(initialCategory) {
+    selectedCategory = initialCategory
+  }
 
-  val filteredGames = remember(games, searchQuery, selectedCategory, offlineOnlyFilter) {
+  val categories = listOf("ALL", "PUZZLE", "BOARD", "ARCADE", "REFLEX", "FAVORITES")
+
+  val filteredGames = remember(games, searchQuery, selectedCategory) {
     games.filter { game ->
       val matchesSearch = searchQuery.isBlank() ||
         game.title.contains(searchQuery, ignoreCase = true) ||
@@ -61,14 +69,12 @@ fun GameHubScreen(
         else -> game.category.equals(selectedCategory, ignoreCase = true)
       }
 
-      val matchesOffline = !offlineOnlyFilter || game.offlineMode
-
-      matchesSearch && matchesCategory && matchesOffline
+      matchesSearch && matchesCategory
     }
   }
 
-  val featuredGame = remember(games) {
-    games.firstOrNull { it.id == "water_sort" } ?: games.firstOrNull()
+  val featuredGames = remember(games) {
+    games.take(4)
   }
 
   LazyVerticalGrid(
@@ -81,7 +87,7 @@ fun GameHubScreen(
     verticalArrangement = Arrangement.spacedBy(14.dp),
     contentPadding = PaddingValues(top = 16.dp, bottom = 96.dp)
   ) {
-    // 1. Vault Brand Header & Live Stats Bar (Part 12)
+    // 1. Top Profile & Action Bar (Matching Reference Screenshot unnamed.webp)
     item(span = { GridItemSpan(maxLineSpan) }) {
       Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -89,150 +95,308 @@ fun GameHubScreen(
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically
         ) {
-          Column {
-            Text(
-              text = "GAME VAULT STUDIO",
-              color = CandyLemon,
-              fontWeight = FontWeight.Black,
-              fontSize = 11.sp,
-              letterSpacing = 1.4.sp
-            )
-            Text(
-              text = "Personal Arcade Hub",
-              color = Color.White,
-              fontWeight = FontWeight.Black,
-              fontSize = 22.sp
-            )
+          // Left: User Profile Pill
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+              .clip(RoundedCornerShape(20.dp))
+              .background(VaultSurfaceElevated)
+              .border(1.dp, VaultBorder, RoundedCornerShape(20.dp))
+              .clickable {
+                soundEngine.playTap()
+                hapticEngine.vibrateTap()
+                onOpenSettings()
+              }
+              .padding(horizontal = 8.dp, vertical = 6.dp)
+          ) {
+            Box(
+              modifier = Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(Brush.linearGradient(listOf(CandyWatermelon, CandyTangerine))),
+              contentAlignment = Alignment.Center
+            ) {
+              Text("🎮", fontSize = 18.sp)
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+              Text(
+                text = "Player 1",
+                color = Color.White,
+                fontWeight = FontWeight.Black,
+                fontSize = 13.sp
+              )
+              Text(
+                text = "LVL 5 • NO WIFI",
+                color = CandyMint,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 9.sp
+              )
+            }
           }
 
-          // Total Games Pill
-          Box(
-            modifier = Modifier
-              .clip(RoundedCornerShape(12.dp))
-              .background(VaultSurfaceHighlight)
-              .border(1.dp, VaultBorderGlow, RoundedCornerShape(12.dp))
-              .padding(horizontal = 10.dp, vertical = 5.dp)
-          ) {
-            Text(
-              text = "${games.size} VAULT GAMES",
-              color = CandyMint,
-              fontWeight = FontWeight.ExtraBold,
-              fontSize = 10.sp
+          // Right: Coin Counter & Settings Gear
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(VaultSurfaceElevated)
+                .border(1.dp, VaultGold.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("⭐", fontSize = 12.sp)
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                  text = "1,450",
+                  color = VaultGold,
+                  fontWeight = FontWeight.Black,
+                  fontSize = 12.sp
+                )
+              }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            IconButton(
+              onClick = {
+                soundEngine.playTap()
+                hapticEngine.vibrateTap()
+                onOpenSettings()
+              },
+              modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(VaultSurfaceElevated)
+                .border(1.dp, VaultBorder, CircleShape)
+            ) {
+              Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White, modifier = Modifier.size(20.dp))
+            }
+          }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Hero Slogan Banner
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+              Brush.horizontalGradient(
+                colors = listOf(
+                  CandySkyBlue.copy(alpha = 0.35f),
+                  VaultSurfaceElevated,
+                  CandyMint.copy(alpha = 0.25f)
+                )
+              )
             )
+            .border(1.dp, VaultBorderGlow, RoundedCornerShape(20.dp))
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Column {
+              Text(
+                text = "Unlimited Fun",
+                color = Color.White,
+                fontWeight = FontWeight.Black,
+                fontSize = 18.sp
+              )
+              Text(
+                text = "Challenge Yourself Offline • 100% Free",
+                color = VaultTextSecondary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+              )
+            }
+
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(CandyMint)
+                .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+              Text(
+                text = "10 GAMES",
+                color = Color.Black,
+                fontWeight = FontWeight.Black,
+                fontSize = 11.sp
+              )
+            }
           }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Platform Stats Bar (Total Games, Offline Ready, Total Plays, Favorites)
-        Row(
+        // Online Games Portal Card (offlinegames.wshareit.com)
+        Box(
           modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(VaultSurfaceElevated)
-            .border(1.dp, VaultBorder, RoundedCornerShape(16.dp))
-            .padding(vertical = 10.dp, horizontal = 12.dp),
-          horizontalArrangement = Arrangement.SpaceAround
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+              Brush.linearGradient(
+                colors = listOf(
+                  Color(0xFF0F2027),
+                  Color(0xFF203A43),
+                  Color(0xFF2C5364)
+                )
+              )
+            )
+            .border(1.5.dp, Brush.horizontalGradient(listOf(CandyCyan, CandyLemon)), RoundedCornerShape(20.dp))
+            .clickable {
+              soundEngine.playSnap()
+              hapticEngine.vibrateSuccess()
+              onOpenOnline()
+            }
+            .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
-          StatsMetric(label = "OFFLINE READY", value = "${games.count { it.offlineMode }}", color = CandyMint)
-          StatsMetric(label = "TOTAL PLAYS", value = "${games.sumOf { it.totalPlays }}", color = CandyCyan)
-          StatsMetric(label = "FAVORITES", value = "${games.count { it.isFavorite }}", color = CandyWatermelon)
-          StatsMetric(label = "ENGINES", value = "8 NATIVE", color = CandyLemon)
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier.weight(1f)
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(42.dp)
+                  .clip(CircleShape)
+                  .background(Brush.radialGradient(listOf(CandyCyan, Color(0xFF0091EA)))),
+                contentAlignment = Alignment.Center
+              ) {
+                Text("🌐", fontSize = 22.sp)
+              }
+
+              Spacer(modifier = Modifier.width(10.dp))
+
+              Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Text(
+                    text = "ONLINE GAMES PORTAL",
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 13.sp
+                  )
+                  Spacer(modifier = Modifier.width(6.dp))
+                  Box(
+                    modifier = Modifier
+                      .clip(RoundedCornerShape(6.dp))
+                      .background(CandyLemon)
+                      .padding(horizontal = 5.dp, vertical = 1.dp)
+                  ) {
+                    Text(
+                      text = "100+ FREE",
+                      color = Color.Black,
+                      fontWeight = FontWeight.Black,
+                      fontSize = 8.sp
+                    )
+                  }
+                }
+                Text(
+                  text = "offlinegames.wshareit.com • Instant Web Arcade",
+                  color = CandyMint,
+                  fontWeight = FontWeight.Bold,
+                  fontSize = 10.sp,
+                  modifier = Modifier.padding(top = 1.dp)
+                )
+              }
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Button(
+              onClick = {
+                soundEngine.playSnap()
+                hapticEngine.vibrateSuccess()
+                onOpenOnline()
+              },
+              colors = ButtonDefaults.buttonColors(containerColor = CandyCyan),
+              shape = RoundedCornerShape(12.dp),
+              contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+              Text("PLAY >", color = Color.Black, fontWeight = FontWeight.Black, fontSize = 11.sp)
+            }
+          }
         }
       }
     }
 
-    // 2. Hero Banner (Part 11)
-    if (featuredGame != null && searchQuery.isBlank() && selectedCategory == "ALL") {
+    // 2. Quick-Play Mini Featured Carousel (Save Me Out, Word Guess, Ludo, 2048)
+    if (searchQuery.isBlank() && selectedCategory == "ALL") {
       item(span = { GridItemSpan(maxLineSpan) }) {
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(175.dp)
-            .clip(RoundedCornerShape(26.dp))
-            .background(
-              Brush.horizontalGradient(
-                colors = listOf(
-                  CandyWatermelon.copy(alpha = 0.35f),
-                  VaultSurfaceElevated,
-                  Color(0xFF281845)
-                )
-              )
-            )
-            .border(1.5.dp, CandyWatermelon.copy(alpha = 0.6f), RoundedCornerShape(26.dp))
-            .clickable { onGamePlay(featuredGame) }
-            .padding(14.dp)
-            .testTag("hero_featured_banner")
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+          Text(
+            text = "POPULAR NOW",
+            color = CandyLemon,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(vertical = 4.dp)
+          )
+
           Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+              .fillMaxWidth()
+              .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
           ) {
-            // Text Details
-            Column(
-              modifier = Modifier
-                .weight(1.3f)
-                .fillMaxHeight(),
-              verticalArrangement = Arrangement.Center
-            ) {
+            featuredGames.forEach { featGame ->
+              val cardColor = Color(featGame.candyColorHex)
               Box(
                 modifier = Modifier
-                  .clip(RoundedCornerShape(6.dp))
-                  .background(CandyWatermelon)
-                  .padding(horizontal = 7.dp, vertical = 2.dp)
+                  .width(135.dp)
+                  .height(145.dp)
+                  .clip(RoundedCornerShape(18.dp))
+                  .background(VaultSurfaceElevated)
+                  .border(1.2.dp, cardColor.copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                  .clickable { onGamePlay(featGame) }
+                  .padding(8.dp)
               ) {
-                Text(
-                  text = "FEATURED FLAGSHIP",
-                  color = Color.White,
-                  fontSize = 9.sp,
-                  fontWeight = FontWeight.Black
-                )
-              }
+                Column(
+                  modifier = Modifier.fillMaxSize(),
+                  horizontalAlignment = Alignment.CenterHorizontally,
+                  verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                  Box(
+                    modifier = Modifier
+                      .fillMaxWidth()
+                      .height(78.dp)
+                      .clip(RoundedCornerShape(14.dp))
+                  ) {
+                    GameCardArtwork(gameId = featGame.id, modifier = Modifier.fillMaxSize())
+                  }
 
-              Text(
-                text = featuredGame.title,
-                color = Color.White,
-                fontWeight = FontWeight.Black,
-                fontSize = 17.sp,
-                maxLines = 1,
-                modifier = Modifier.padding(top = 4.dp)
-              )
+                  Text(
+                    text = featGame.title,
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 11.sp,
+                    maxLines = 1
+                  )
 
-              Text(
-                text = featuredGame.description,
-                color = VaultTextSecondary,
-                fontSize = 11.sp,
-                maxLines = 2,
-                lineHeight = 14.sp,
-                modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
-              )
-
-              // PLAY NOW BUTTON
-              Box(
-                modifier = Modifier
-                  .clip(RoundedCornerShape(12.dp))
-                  .background(CandyMint)
-                  .clickable { onGamePlay(featuredGame) }
-                  .padding(horizontal = 14.dp, vertical = 6.dp)
-                  .testTag("hero_play_btn")
-              ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
-                  Spacer(modifier = Modifier.width(3.dp))
-                  Text("PLAY NOW", color = Color.Black, fontWeight = FontWeight.Black, fontSize = 11.sp)
+                  Box(
+                    modifier = Modifier
+                      .fillMaxWidth()
+                      .clip(RoundedCornerShape(8.dp))
+                      .background(cardColor)
+                      .padding(vertical = 3.dp),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    Text(
+                      text = "PLAY NOW",
+                      color = Color.White,
+                      fontWeight = FontWeight.Black,
+                      fontSize = 9.sp
+                    )
+                  }
                 }
               }
-            }
-
-            // Hero Artwork
-            Box(
-              modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(18.dp))
-                .background(VaultCardDark.copy(alpha = 0.6f))
-            ) {
-              GameCardArtwork(gameId = featuredGame.id, modifier = Modifier.fillMaxSize())
             }
           }
         }
@@ -246,7 +410,7 @@ fun GameHubScreen(
           .fillMaxWidth()
           .clip(RoundedCornerShape(18.dp))
           .background(VaultSurfaceElevated)
-          .border(1.dp, VaultBorderGlow, RoundedCornerShape(18.dp))
+          .border(1.dp, VaultBorder, RoundedCornerShape(18.dp))
           .padding(horizontal = 14.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
@@ -255,7 +419,7 @@ fun GameHubScreen(
         TextField(
           value = searchQuery,
           onValueChange = { searchQuery = it },
-          placeholder = { Text("Search 10+ Vault games...", color = VaultTextMuted, fontSize = 13.sp) },
+          placeholder = { Text("Search games (e.g. Ludo, 2048, Snake)...", color = VaultTextMuted, fontSize = 13.sp) },
           colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
@@ -277,7 +441,7 @@ fun GameHubScreen(
       }
     }
 
-    // 4. Category & Filter Chips Scrollable Row
+    // 4. Category Filter Chips
     item(span = { GridItemSpan(maxLineSpan) }) {
       Row(
         modifier = Modifier
@@ -286,56 +450,47 @@ fun GameHubScreen(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
-        // Offline Filter Toggle Chip
-        Box(
-          modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (offlineOnlyFilter) CandyMint else VaultSurfaceElevated)
-            .border(1.dp, CandyMint, RoundedCornerShape(14.dp))
-            .clickable {
-              offlineOnlyFilter = !offlineOnlyFilter
-              soundEngine.playTap()
-              hapticEngine.vibrateTap()
-            }
-            .padding(horizontal = 12.dp, vertical = 7.dp)
-            .testTag("hub_filter_offline")
-        ) {
-          Text(
-            text = "⚡ OFFLINE ONLY",
-            color = if (offlineOnlyFilter) Color.Black else CandyMint,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 11.sp
-          )
-        }
-
-        // Category Pills
         categories.forEach { cat ->
           val isSelected = (selectedCategory == cat)
+          val chipIcon = when (cat) {
+            "ALL" -> "🎮"
+            "PUZZLE" -> "🧩"
+            "BOARD" -> "🎲"
+            "ARCADE" -> "🕹️"
+            "REFLEX" -> "⚡"
+            "FAVORITES" -> "⭐"
+            else -> "🎯"
+          }
+
           Box(
             modifier = Modifier
-              .clip(RoundedCornerShape(14.dp))
+              .clip(RoundedCornerShape(16.dp))
               .background(if (isSelected) CandyCyan else VaultSurfaceElevated)
-              .border(1.dp, if (isSelected) Color.White else VaultBorder, RoundedCornerShape(14.dp))
+              .border(1.dp, if (isSelected) Color.White else VaultBorder, RoundedCornerShape(16.dp))
               .clickable {
                 selectedCategory = cat
                 soundEngine.playTap()
                 hapticEngine.vibrateTap()
               }
-              .padding(horizontal = 12.dp, vertical = 7.dp)
+              .padding(horizontal = 14.dp, vertical = 8.dp)
               .testTag("hub_cat_$cat")
           ) {
-            Text(
-              text = cat,
-              color = if (isSelected) Color.Black else Color.White,
-              fontWeight = FontWeight.Bold,
-              fontSize = 11.sp
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(text = chipIcon, fontSize = 12.sp)
+              Spacer(modifier = Modifier.width(5.dp))
+              Text(
+                text = cat,
+                color = if (isSelected) Color.Black else Color.White,
+                fontWeight = FontWeight.Black,
+                fontSize = 11.sp
+              )
+            }
           }
         }
       }
     }
 
-    // 5. Game Cards Grid (Candy Cards)
+    // 5. Game Cards Grid (Casual Game Tiles)
     items(filteredGames, key = { it.id }) { game ->
       GameCard(
         game = game,
@@ -344,13 +499,5 @@ fun GameHubScreen(
         onFavoriteClick = { onToggleFavorite(game) }
       )
     }
-  }
-}
-
-@Composable
-private fun StatsMetric(label: String, value: String, color: Color) {
-  Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Text(label, color = VaultTextMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-    Text(value, color = color, fontSize = 12.sp, fontWeight = FontWeight.Black)
   }
 }

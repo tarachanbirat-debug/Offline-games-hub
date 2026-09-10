@@ -1,6 +1,6 @@
 {
   "name": "Game Vault",
-  "description": "Production Game Vault Platform with real multi-technology adapters, package manager, and flagship engines.",
+  "description": "Premium casual game vault with 10 native offline 3D games and an integrated Online Games Arcade portal (offlinegames.wshareit.com) with 100+ free instant games.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

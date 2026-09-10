@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +18,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.adapters.AdapterRegistry
 import com.example.audio.VaultHapticEngine
 import com.example.audio.VaultSoundEngine
 import com.example.data.GameVaultRepository
@@ -30,8 +30,10 @@ fun SettingsScreen(
   soundEngine: VaultSoundEngine,
   hapticEngine: VaultHapticEngine,
   games: List<GameItem>,
+  onOpenWelcome: () -> Unit = {},
   modifier: Modifier = Modifier
 ) {
+  val context = androidx.compose.ui.platform.LocalContext.current
   var soundEnabled by remember { mutableStateOf(repository.getSoundEnabled()) }
   var hapticsEnabled by remember { mutableStateOf(repository.getHapticsEnabled()) }
 
@@ -46,20 +48,20 @@ fun SettingsScreen(
     item {
       Column {
         Text(
-          text = "PLATFORM SETTINGS",
+          text = "GAME SETTINGS",
           color = CandyLemon,
           fontWeight = FontWeight.Black,
-          fontSize = 12.sp,
+          fontSize = 11.sp,
           letterSpacing = 1.2.sp
         )
         Text(
-          text = "Vault Configuration",
+          text = "Audio & Experience",
           color = Color.White,
           fontWeight = FontWeight.Black,
           fontSize = 24.sp
         )
         Text(
-          text = "Control hardware synthesis, sensory vibration, adapter pipelines, and local database storage.",
+          text = "Customize your gaming audio effects, vibration feedback, and view your game stats.",
           color = VaultTextSecondary,
           fontSize = 13.sp,
           lineHeight = 17.sp,
@@ -75,11 +77,11 @@ fun SettingsScreen(
           .fillMaxWidth()
           .clip(RoundedCornerShape(22.dp))
           .background(VaultSurfaceElevated)
-          .border(1.dp, VaultBorderGlow, RoundedCornerShape(22.dp))
+          .border(1.dp, VaultBorder, RoundedCornerShape(22.dp))
           .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
       ) {
-        Text("SENSORY FEEDBACK", color = VaultTextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Text("AUDIO & VIBRATION", color = VaultTextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
 
         // Sound Toggle
         Row(
@@ -91,8 +93,8 @@ fun SettingsScreen(
             Icon(Icons.Default.VolumeUp, contentDescription = null, tint = CandyCyan)
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-              Text("Procedural Sound Synthesis", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-              Text("Real-time AudioTrack waveform synthesis", color = VaultTextSecondary, fontSize = 11.sp)
+              Text("Game Sound Effects", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+              Text("Arcade pops, snaps, victory fanfares", color = VaultTextSecondary, fontSize = 11.sp)
             }
           }
           Switch(
@@ -103,12 +105,12 @@ fun SettingsScreen(
               soundEngine.isMuted = !it
               if (it) soundEngine.playPop()
             },
-            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = CandyCyan),
+            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = CandyMint),
             modifier = Modifier.testTag("settings_sound_switch")
           )
         }
 
-        Divider(color = VaultBorder)
+        HorizontalDivider(color = VaultBorder)
 
         // Haptic Toggle
         Row(
@@ -120,8 +122,8 @@ fun SettingsScreen(
             Icon(Icons.Default.Vibration, contentDescription = null, tint = CandyWatermelon)
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-              Text("Haptic Feedback Engine", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-              Text("Tactile impulse vibration on tap & score", color = VaultTextSecondary, fontSize = 11.sp)
+              Text("Haptic Feedback", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+              Text("Tactile vibration on tap, moves, & wins", color = VaultTextSecondary, fontSize = 11.sp)
             }
           }
           Switch(
@@ -139,86 +141,155 @@ fun SettingsScreen(
       }
     }
 
-    // Adapter Architecture Status
+    // Gaming Stats
     item {
       Column(
         modifier = Modifier
           .fillMaxWidth()
           .clip(RoundedCornerShape(22.dp))
           .background(VaultSurfaceElevated)
-          .border(1.dp, VaultBorderGlow, RoundedCornerShape(22.dp))
+          .border(1.dp, VaultBorder, RoundedCornerShape(22.dp))
           .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
       ) {
-        Text("MODULAR ADAPTER ARCHITECTURE", color = VaultTextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Text("YOUR GAMING STATS", color = VaultTextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
 
-        AdapterRegistry.adapters.forEach { adapter ->
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(12.dp))
-              .background(VaultCardDark)
-              .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Column {
-              Text(adapter.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-              Text(adapter.supportedTech, color = VaultTextSecondary, fontSize = 11.sp)
-            }
-            Box(
-              modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(CandyMint.copy(alpha = 0.2f))
-                .border(1.dp, CandyMint, RoundedCornerShape(6.dp))
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-            ) {
-              Text("ACTIVE", color = CandyMint, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-            }
-          }
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+          Text("Ready to Play Games:", color = VaultTextSecondary, fontSize = 13.sp)
+          Text("${games.size} Games (100% Offline)", color = CandyMint, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        }
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+          Text("Total Sessions Played:", color = VaultTextSecondary, fontSize = 13.sp)
+          Text("${games.sumOf { it.totalPlays }} Plays", color = CandyCyan, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        }
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+          Text("Favorite Games:", color = VaultTextSecondary, fontSize = 13.sp)
+          Text("${games.count { it.isFavorite }} Games", color = CandyLemon, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
       }
     }
 
-    // Vault Storage & Statistics
+    // About Game Station & Developer
     item {
       Column(
         modifier = Modifier
           .fillMaxWidth()
           .clip(RoundedCornerShape(22.dp))
           .background(VaultSurfaceElevated)
-          .border(1.dp, VaultBorderGlow, RoundedCornerShape(22.dp))
+          .border(1.dp, VaultBorder, RoundedCornerShape(22.dp))
           .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
       ) {
-        Text("VAULT DATABASE STORAGE", color = VaultTextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Text("CREATOR & INFO", color = VaultTextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Text("Offline Game Station 2.0", color = Color.White, fontWeight = FontWeight.Black, fontSize = 15.sp)
+        Text(
+          "All 10 games are built with native physics and zero external internet dependencies. Play anywhere, anytime without Wi-Fi.",
+          color = VaultTextSecondary,
+          fontSize = 12.sp,
+          lineHeight = 16.sp
+        )
+
+        HorizontalDivider(color = VaultBorder)
+
+        // Developed by Sandeep
         Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.padding(top = 4.dp)
         ) {
-          Text("Installed Games in Vault:", color = VaultTextSecondary, fontSize = 13.sp)
-          Text("${games.size} Titles", color = CandyLemon, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+          Text("⚡", fontSize = 14.sp)
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(
+            text = "Developed by Sandeep",
+            color = Color.White,
+            fontWeight = FontWeight.Black,
+            fontSize = 14.sp
+          )
         }
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween
+
+        // Instagram handle button
+        val instagramGradient = androidx.compose.ui.graphics.Brush.linearGradient(
+          colors = listOf(
+            Color(0xFF833AB4),
+            Color(0xFFC13584),
+            Color(0xFFE1306C),
+            Color(0xFFFD1D1D),
+            Color(0xFFF77737),
+            Color(0xFFFFDC80)
+          )
+        )
+
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(instagramGradient)
+            .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+            .clickable {
+              soundEngine.playPop()
+              hapticEngine.vibrateTap()
+              try {
+                val uri = android.net.Uri.parse("https://instagram.com/_u/sandeep_._kumar52")
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri).apply {
+                  setPackage("com.instagram.android")
+                  flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+              } catch (e: Exception) {
+                try {
+                  val webUri = android.net.Uri.parse("https://instagram.com/sandeep_._kumar52")
+                  val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, webUri).apply {
+                    flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                  }
+                  context.startActivity(webIntent)
+                } catch (e2: Exception) {
+                  android.widget.Toast.makeText(context, "Instagram: @sandeep_._kumar52", android.widget.Toast.LENGTH_SHORT).show()
+                }
+              }
+            }
+            .padding(vertical = 10.dp, horizontal = 14.dp),
+          contentAlignment = Alignment.Center
         ) {
-          Text("Offline Ready Titles:", color = VaultTextSecondary, fontSize = 13.sp)
-          Text("${games.count { it.offlineMode }} / ${games.size}", color = CandyMint, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("📸", fontSize = 14.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+              text = "Insta: @sandeep_._kumar52",
+              color = Color.White,
+              fontWeight = FontWeight.ExtraBold,
+              fontSize = 13.sp,
+              letterSpacing = 0.6.sp
+            )
+          }
         }
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Open Welcome Screen Button
+        OutlinedButton(
+          onClick = {
+            soundEngine.playSnap()
+            hapticEngine.vibrateTap()
+            onOpenWelcome()
+          },
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp),
+          shape = RoundedCornerShape(12.dp),
+          border = androidx.compose.foundation.BorderStroke(1.dp, CandyCyan.copy(alpha = 0.7f)),
+          colors = ButtonDefaults.outlinedButtonColors(contentColor = CandyCyan)
         ) {
-          Text("Total Combined Plays:", color = VaultTextSecondary, fontSize = 13.sp)
-          Text("${games.sumOf { it.totalPlays }} Sessions", color = CandyCyan, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-        }
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-          Text("Persistence Engine:", color = VaultTextSecondary, fontSize = 13.sp)
-          Text("Room SQLite KSP", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+          Icon(Icons.Default.SportsEsports, contentDescription = null, modifier = Modifier.size(18.dp))
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("Show Welcome Screen", fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
       }
     }

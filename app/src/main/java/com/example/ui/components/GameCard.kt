@@ -216,17 +216,17 @@ fun GameCard(
         // Chunky 2.5D PLAY Button
         Box(
           modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(
               Brush.horizontalGradient(
                 colors = listOf(
-                  cardCandyColor,
-                  cardCandyColor.copy(alpha = 0.8f)
+                  CandyMint,
+                  Color(0xFF00C853)
                 )
               )
             )
             .clickable(onClick = onPlayClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp)
+            .padding(horizontal = 10.dp, vertical = 6.dp)
             .testTag("play_btn_${game.id}"),
           contentAlignment = Alignment.Center
         ) {
@@ -234,16 +234,16 @@ fun GameCard(
             Icon(
               imageVector = Icons.Default.PlayArrow,
               contentDescription = "Play",
-              tint = Color.White,
-              modifier = Modifier.size(16.dp)
+              tint = Color.Black,
+              modifier = Modifier.size(15.dp)
             )
             Spacer(modifier = Modifier.width(2.dp))
             Text(
               text = "PLAY",
-              color = Color.White,
+              color = Color.Black,
               fontWeight = FontWeight.Black,
-              fontSize = 12.sp,
-              letterSpacing = 0.8.sp
+              fontSize = 11.sp,
+              maxLines = 1
             )
           }
         }
