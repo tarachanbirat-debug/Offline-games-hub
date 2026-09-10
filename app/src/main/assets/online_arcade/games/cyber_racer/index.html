@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Neon Racer 3D</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: #030712;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      touch-action: none;
+    }
+    #canvas-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 480px;
+      max-height: 850px;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-box {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      border-radius: 12px;
+      padding: 6px 14px;
+      text-align: center;
+    }
+    .hud-label { font-size: 10px; color: #94A3B8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .hud-val { font-size: 20px; font-weight: 900; color: #00E5FF; }
+    .hud-speed { color: #FF2A85; }
+    
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.88);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 24px;
+      text-align: center;
+    }
+    .title {
+      font-size: 32px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #00E5FF, #FF2A85);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .subtitle { font-size: 14px; color: #94A3B8; margin-bottom: 24px; }
+    .btn-play {
+      background: linear-gradient(135deg, #00E5FF, #7C4DFF);
+      color: #000;
+      font-weight: 900;
+      font-size: 18px;
+      border: none;
+      border-radius: 30px;
+      padding: 14px 38px;
+      cursor: pointer;
+      box-shadow: 0 0 24px rgba(0, 229, 255, 0.5);
+      transition: transform 0.1s;
+    }
+    .btn-play:active { transform: scale(0.96); }
+    
+    .touch-controls {
+      position: absolute;
+      bottom: 24px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .ctrl-btn {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(0, 229, 255, 0.5);
+      color: #00E5FF;
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+    }
+    .ctrl-btn:active {
+      background: rgba(0, 229, 255, 0.3);
+      transform: scale(0.92);
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <div class="hud">
+      <div class="hud-box">
+        <div class="hud-label">SCORE</div>
+        <div class="hud-val" id="score-val">0</div>
+      </div>
+      <div class="hud-box">
+        <div class="hud-label">SPEED</div>
+        <div class="hud-val hud-speed" id="speed-val">120</div>
+      </div>
+      <div class="hud-box">
+        <div class="hud-label">BEST</div>
+        <div class="hud-val" id="best-val">0</div>
+      </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="touch-controls">
+      <div class="ctrl-btn" id="btn-left">◀</div>
+      <div class="ctrl-btn" id="btn-boost">⚡</div>
+      <div class="ctrl-btn" id="btn-right">▶</div>
+    </div>
+
+    <div class="overlay" id="start-overlay">
+      <div class="title">CYBER RACER 3D</div>
+      <div class="subtitle">Dodge traffic on the retro synthwave highway!</div>
+      <button class="btn-play" id="btn-start">START RACE ▶</button>
+    </div>
+
+    <div class="overlay" id="gameover-overlay" style="display: none;">
+      <div class="title" style="background: linear-gradient(135deg, #FF5252, #FF2A85); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">CRASHED!</div>
+      <div class="subtitle" id="final-score-text">Score: 0</div>
+      <button class="btn-play" id="btn-restart">RACE AGAIN ↺</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const container = document.getElementById("canvas-container");
+    
+    let width, height;
+    function resize() {
+      width = canvas.width = container.clientWidth;
+      height = canvas.height = container.clientHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    // Sound effects via Web Audio API
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+    }
+    function playBeep(freq, type = "sine", duration = 0.1) {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    let isPlaying = false;
+    let score = 0;
+    let bestScore = parseInt(localStorage.getItem("cyber_racer_best") || "0");
+    document.getElementById("best-val").textContent = bestScore;
+
+    let playerX = 0; // -1 to 1
+    let targetX = 0;
+    let speed = 15;
+    let baseSpeed = 15;
+    let isBoosting = false;
+    let roadOffset = 0;
+
+    let traffic = [];
+    let particles = [];
+    let lanes = [-0.6, -0.2, 0.2, 0.6];
+    let carColors = ["#FF2A85", "#00E5FF", "#FFEB3B", "#00E676", "#7C4DFF"];
+
+    function spawnCar() {
+      const lane = lanes[Math.floor(Math.random() * lanes.length)];
+      traffic.push({
+        x: lane,
+        z: 1000,
+        color: carColors[Math.floor(Math.random() * carColors.length)],
+        speed: baseSpeed * 0.45
+      });
+    }
+
+    let spawnTimer = 0;
+
+    function resetGame() {
+      playerX = 0;
+      targetX = 0;
+      traffic = [];
+      particles = [];
+      score = 0;
+      speed = baseSpeed;
+      document.getElementById("score-val").textContent = "0";
+      document.getElementById("speed-val").textContent = "120";
+    }
+
+    // Touch and key listeners
+    let leftPressed = false, rightPressed = false;
+    window.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft" || e.key === "a") leftPressed = true;
+      if (e.key === "ArrowRight" || e.key === "d") rightPressed = true;
+      if (e.key === "ArrowUp" || e.key === "w" || e.key === " ") isBoosting = true;
+    });
+    window.addEventListener("keyup", e => {
+      if (e.key === "ArrowLeft" || e.key === "a") leftPressed = false;
+      if (e.key === "ArrowRight" || e.key === "d") rightPressed = false;
+      if (e.key === "ArrowUp" || e.key === "w" || e.key === " ") isBoosting = false;
+    });
+
+    const btnLeft = document.getElementById("btn-left");
+    const btnRight = document.getElementById("btn-right");
+    const btnBoost = document.getElementById("btn-boost");
+
+    btnLeft.addEventListener("touchstart", (e) => { e.preventDefault(); leftPressed = true; });
+    btnLeft.addEventListener("touchend", () => { leftPressed = false; });
+    btnRight.addEventListener("touchstart", (e) => { e.preventDefault(); rightPressed = true; });
+    btnRight.addEventListener("touchend", () => { rightPressed = false; });
+    btnBoost.addEventListener("touchstart", (e) => { e.preventDefault(); isBoosting = true; });
+    btnBoost.addEventListener("touchend", () => { isBoosting = false; });
+
+    // Drag / Swipe directly on canvas
+    let touchStartX = 0;
+    canvas.addEventListener("touchstart", e => {
+      touchStartX = e.touches[0].clientX;
+    });
+    canvas.addEventListener("touchmove", e => {
+      const diff = (e.touches[0].clientX - touchStartX) / (width * 0.5);
+      targetX = Math.max(-0.85, Math.min(0.85, targetX + diff));
+      touchStartX = e.touches[0].clientX;
+    });
+
+    function project(x, z) {
+      const fov = 350;
+      const cameraY = 180;
+      const scale = fov / (z + fov);
+      const px = width / 2 + (x * width * 0.5) * scale;
+      const py = height * 0.55 + cameraY * scale;
+      return { x: px, y: py, scale: scale };
+    }
+
+    function drawCar(px, py, scale, color, isPlayer = false) {
+      const w = 90 * scale;
+      const h = 45 * scale;
+      
+      // Car Body
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = isPlayer ? 15 : 8;
+      
+      ctx.beginPath();
+      ctx.roundRect(px - w/2, py - h, w, h, 6 * scale);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Windshield
+      ctx.fillStyle = "#0A1128";
+      ctx.beginPath();
+      ctx.roundRect(px - w/3, py - h * 0.9, w * 0.66, h * 0.45, 4 * scale);
+      ctx.fill();
+
+      // Taillights
+      ctx.fillStyle = isPlayer ? "#FF1744" : "#FF5252";
+      ctx.shadowColor = "#FF1744";
+      ctx.shadowBlur = 8;
+      ctx.fillRect(px - w * 0.45, py - h * 0.3, w * 0.2, h * 0.2);
+      ctx.fillRect(px + w * 0.25, py - h * 0.3, w * 0.2, h * 0.2);
+      ctx.shadowBlur = 0;
+    }
+
+    function update() {
+      if (!isPlaying) return;
+
+      // Handle boost & speed
+      speed = isBoosting ? 26 : baseSpeed;
+      document.getElementById("speed-val").textContent = Math.round(speed * 8);
+
+      if (leftPressed) targetX = Math.max(-0.85, targetX - 0.04);
+      if (rightPressed) targetX = Math.min(0.85, targetX + 0.04);
+      playerX += (targetX - playerX) * 0.2;
+
+      roadOffset = (roadOffset + speed) % 120;
+      score += Math.round(speed * 0.1);
+      document.getElementById("score-val").textContent = score;
+
+      // Spawn traffic
+      spawnTimer++;
+      if (spawnTimer > 45) {
+        spawnCar();
+        spawnTimer = 0;
+      }
+
+      // Update traffic
+      for (let i = traffic.length - 1; i >= 0; i--) {
+        const car = traffic[i];
+        car.z -= (speed - car.speed);
+
+        // Collision check
+        if (car.z < 40 && car.z > -20) {
+          if (Math.abs(car.x - playerX) < 0.25) {
+            // Collision!
+            gameOver();
+            return;
+          }
+        }
+
+        if (car.z < -100) {
+          traffic.splice(i, 1);
+          playBeep(440, "sine", 0.08);
+        }
+      }
+
+      // Particle speed lines
+      if (Math.random() < 0.4) {
+        particles.push({
+          x: (Math.random() - 0.5) * 2,
+          z: 800,
+          color: isBoosting ? "#FF2A85" : "#00E5FF"
+        });
+      }
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].z -= speed * 2;
+        if (particles[i].z <= 0) particles.splice(i, 1);
+      }
+    }
+
+    function render() {
+      // Sky gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, height * 0.55);
+      skyGrad.addColorStop(0, "#050515");
+      skyGrad.addColorStop(1, "#18062B");
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, height * 0.55);
+
+      // Neon Synth Sun
+      ctx.save();
+      const sunGrad = ctx.createRadialGradient(width/2, height * 0.48, 10, width/2, height * 0.48, 90);
+      sunGrad.addColorStop(0, "#FFE600");
+      sunGrad.addColorStop(0.5, "#FF2A85");
+      sunGrad.addColorStop(1, "transparent");
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(width/2, height * 0.48, 90, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Road background
+      ctx.fillStyle = "#090A1A";
+      ctx.fillRect(0, height * 0.55, width, height * 0.45);
+
+      // Grid / Road
+      const pNearL = project(-1.2, 0);
+      const pNearR = project(1.2, 0);
+      const pFarL = project(-1.2, 1000);
+      const pFarR = project(1.2, 1000);
+
+      // Road Surface
+      ctx.fillStyle = "#0A0D1F";
+      ctx.beginPath();
+      ctx.moveTo(pNearL.x, pNearL.y);
+      ctx.lineTo(pFarL.x, pFarL.y);
+      ctx.lineTo(pFarR.x, pFarR.y);
+      ctx.lineTo(pNearR.x, pNearR.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Road borders (Neon lines)
+      ctx.strokeStyle = "#00E5FF";
+      ctx.lineWidth = 3;
+      ctx.shadowColor = "#00E5FF";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(pNearL.x, pNearL.y);
+      ctx.lineTo(pFarL.x, pFarL.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(pNearR.x, pNearR.y);
+      ctx.lineTo(pFarR.x, pFarR.y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Lane dividers
+      for (let z = 0; z < 1000; z += 60) {
+        const lineZ = (z - roadOffset + 1000) % 1000;
+        if (lineZ > 900 || lineZ < 20) continue;
+        const p1 = project(-0.2, lineZ);
+        const p2 = project(0.2, lineZ);
+        ctx.fillStyle = "rgba(255, 255, 255, " + (1 - lineZ/1000) + ")";
+        ctx.fillRect(p1.x - 2, p1.y, 4, 12 * p1.scale);
+        ctx.fillRect(p2.x - 2, p2.y, 4, 12 * p2.scale);
+      }
+
+      // Render Traffic (sort back to front)
+      traffic.sort((a, b) => b.z - a.z);
+      traffic.forEach(car => {
+        if (car.z > 0 && car.z < 1000) {
+          const pt = project(car.x, car.z);
+          drawCar(pt.x, pt.y, pt.scale, car.color, false);
+        }
+      });
+
+      // Render Player Car
+      const pPlayer = project(playerX, 20);
+      drawCar(pPlayer.x, pPlayer.y, pPlayer.scale, "#00E5FF", true);
+
+      // Particle speed streaks
+      particles.forEach(p => {
+        const pt = project(p.x, p.z);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(pt.x, pt.y, 2, 20 * pt.scale);
+      });
+    }
+
+    function loop() {
+      update();
+      render();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    function gameOver() {
+      isPlaying = false;
+      playBeep(120, "sawtooth", 0.4);
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("cyber_racer_best", bestScore);
+        document.getElementById("best-val").textContent = bestScore;
+      }
+      document.getElementById("final-score-text").textContent = "Score: " + score + " | Best: " + bestScore;
+      document.getElementById("gameover-overlay").style.display = "flex";
+    }
+
+    document.getElementById("btn-start").onclick = () => {
+      initAudio();
+      document.getElementById("start-overlay").style.display = "none";
+      resetGame();
+      isPlaying = true;
+    };
+
+    document.getElementById("btn-restart").onclick = () => {
+      document.getElementById("gameover-overlay").style.display = "none";
+      resetGame();
+      isPlaying = true;
+    };
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Online Arcade - Game Vault</title>
+  <title>Arcade & Games Hub</title>
   <style>
     * {
       box-sizing: border-box;
@@ -20,6 +20,7 @@
       min-height: 100vh;
       overflow-x: hidden;
       overflow-y: auto;
+      padding-bottom: 70px;
     }
 
     /* ------------------------------------------------------------- */
@@ -80,7 +81,7 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 999px;
       background: rgba(0, 230, 118, 0.15);
       border: 1px solid rgba(0, 230, 118, 0.4);
@@ -159,14 +160,15 @@
     }
 
     .cat-chip.active {
-      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(124, 77, 255, 0.2));
+      background: linear-gradient(135deg, #00E5FF, #7C4DFF);
+      color: #050B14;
       border-color: #00E5FF;
-      color: #00E5FF;
-      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+      font-weight: 800;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
     }
 
     /* ------------------------------------------------------------- */
-    /* Game Grid Layout                                              */
+    /* Main Content Area                                             */
     /* ------------------------------------------------------------- */
     main {
       padding: 16px;
@@ -174,29 +176,182 @@
       margin: 0 auto;
     }
 
+    /* Featured Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(16, 27, 56, 0.95), rgba(28, 17, 54, 0.95));
+      border: 1.5px solid rgba(0, 229, 255, 0.35);
+      border-radius: 20px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .hero-banner::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, rgba(0, 229, 255, 0.25), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 42, 133, 0.2);
+      border: 1px solid rgba(255, 42, 133, 0.5);
+      color: #FF2A85;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #FFF;
+      margin-bottom: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero-desc {
+      font-size: 12px;
+      color: #94A3B8;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .hero-cta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .hero-badge-sub {
+      font-size: 11px;
+      color: #00E676;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-hero-play {
+      background: linear-gradient(135deg, #00E5FF, #7C4DFF);
+      color: #050B14;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 10px 22px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.45);
+      white-space: nowrap;
+      transition: transform 0.1s;
+    }
+    .btn-hero-play:active { transform: scale(0.96); }
+
+    /* Fast Switch to Local Games Banner */
+    .local-switch-banner {
+      background: rgba(18, 32, 58, 0.6);
+      border: 1px solid rgba(0, 230, 118, 0.35);
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .local-switch-banner:active {
+      background: rgba(18, 32, 58, 0.85);
+    }
+
+    .local-switch-text {
+      font-size: 12px;
+      color: #E2E8F0;
+      line-height: 1.35;
+    }
+    .local-switch-text strong {
+      color: #00E676;
+      font-weight: 800;
+    }
+
+    .btn-switch-local {
+      background: rgba(0, 230, 118, 0.15);
+      border: 1.2px solid #00E676;
+      color: #00E676;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 7px 12px;
+      border-radius: 10px;
+      white-space: nowrap;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+
+    /* Section Header */
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.4px;
+    }
+    .games-count {
+      font-size: 11px;
+      color: #64748B;
+      font-weight: 700;
+    }
+
+    /* Game Cards Grid */
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
 
     @media (min-width: 600px) {
       .grid-container {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+    }
+    @media (min-width: 900px) {
+      .grid-container {
+        grid-template-columns: repeat(4, 1fr);
       }
     }
 
-    /* Game Card */
     .game-card {
-      background: #0E172B;
+      background: #0E1729;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 18px;
+      border-radius: 16px;
       overflow: hidden;
-      cursor: pointer;
       display: flex;
       flex-direction: column;
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+      cursor: pointer;
+      transition: all 0.2s ease;
       position: relative;
     }
 
@@ -239,6 +394,20 @@
       letter-spacing: 0.5px;
     }
 
+    .card-offline-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 230, 118, 0.92);
+      color: #050B14;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 3px 6px;
+      border-radius: 5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
+    }
+
     .card-body {
       padding: 10px 12px 12px;
       display: flex;
@@ -254,18 +423,31 @@
       line-height: 1.3;
       margin-bottom: 4px;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+
+    .card-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
     }
 
     .card-meta {
       font-size: 10px;
       color: #64748B;
-      margin-bottom: 8px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 65%;
+    }
+
+    .card-rating {
+      font-size: 10px;
+      color: #FBBF24;
+      font-weight: 800;
     }
 
     .btn-play-card {
@@ -305,118 +487,124 @@
       display: flex;
     }
 
-    #game-iframe {
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      display: block;
-      background: #000;
-    }
-
-    /* Floating Overlay Action Buttons over the Iframe */
+    /* Floating Top Overlay Buttons */
     .floating-bar {
-      position: fixed;
-      top: 14px;
-      left: 14px;
-      right: 14px;
-      z-index: 10000;
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      pointer-events: none; /* Let clicks pass through except on buttons */
+      z-index: 10000;
+      pointer-events: none;
     }
 
     .floating-btn {
       pointer-events: auto;
-      display: inline-flex;
+      border: none;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(11, 19, 43, 0.88);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1.5px solid rgba(0, 229, 255, 0.5);
-      color: #FFF;
-      font-size: 12px;
-      font-weight: 800;
-      padding: 8px 14px;
-      border-radius: 999px;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 229, 255, 0.25);
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      min-height: 44px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      transition: transform 0.15s ease;
     }
 
     .floating-btn:active {
       transform: scale(0.92);
     }
 
-    .floating-btn.btn-back {
-      background: rgba(15, 23, 42, 0.92);
-      border-color: rgba(255, 255, 255, 0.3);
+    .btn-back {
+      background: rgba(14, 23, 41, 0.88);
+      color: #FFF;
+      border: 1px solid rgba(255, 42, 133, 0.6);
     }
 
-    .floating-btn.btn-back:hover {
-      border-color: #00E676;
-      color: #00E676;
+    .btn-fullscreen {
+      background: rgba(0, 229, 255, 0.95);
+      color: #050B14;
+      border: 1px solid #00E5FF;
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.4);
     }
 
-    .floating-btn.btn-fullscreen {
-      border-color: #00E5FF;
-      color: #00E5FF;
-    }
-
-    .floating-btn.btn-fullscreen:hover {
-      background: rgba(0, 229, 255, 0.2);
-    }
-
-    .btn-icon {
-      font-size: 15px;
-    }
-
-    /* Empty state */
     .empty-state {
       text-align: center;
-      padding: 60px 20px;
+      padding: 50px 20px;
       color: #64748B;
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. Header Section -->
-  <header id="arcade-header">
+  <!-- 1. Sticky Arcade Header -->
+  <header>
     <div class="header-top">
       <div class="brand-title">
         <div class="brand-icon">🎮</div>
         <div class="brand-text">
-          <h1>ONLINE ARCADE</h1>
-          <p>Instant HTML5 Games • Embed Cloud</p>
+          <h1>GAMES ARCADE</h1>
+          <p>Instant Web Games & Offline Bundle</p>
         </div>
       </div>
-      <div class="badge-live">LIVE CLOUD</div>
+      <div class="badge-live">LIVE READY</div>
     </div>
 
     <!-- Search Input -->
     <div class="search-box">
       <span class="search-icon">🔍</span>
-      <input type="text" id="search-input" class="search-input" placeholder="Search games (Chess, Flappy, Dino, Checkers, Snake...)" />
+      <input type="text" id="search-input" class="search-input" placeholder="Search games (Chess, Racer, Flappy, 2048...)" />
     </div>
 
     <!-- Category Filter Chips -->
     <div class="categories-bar" id="categories-bar">
       <div class="cat-chip active" data-cat="ALL">All Games</div>
-      <div class="cat-chip" data-cat="Board">♟️ Board</div>
-      <div class="cat-chip" data-cat="Arcade">🕹️ Arcade</div>
-      <div class="cat-chip" data-cat="Action">⚡ Action</div>
-      <div class="cat-chip" data-cat="Puzzle">🧩 Puzzle</div>
+      <div class="cat-chip" data-cat="OFFLINE">⚡ Offline Bundle</div>
+      <div class="cat-chip" data-cat="Action">🏎️ Action & Speed</div>
+      <div class="cat-chip" data-cat="Board">♟️ Board & Chess</div>
+      <div class="cat-chip" data-cat="Arcade">🕹️ Retro Arcade</div>
+      <div class="cat-chip" data-cat="Puzzle">🧩 Puzzle & Logic</div>
     </div>
   </header>
 
   <!-- 2. Main Game Cards Grid -->
   <main id="arcade-main">
+    <!-- Featured Hero Spotlight -->
+    <div class="hero-banner" id="hero-banner">
+      <div class="hero-tag">🔥 FEATURED SPOTLIGHT</div>
+      <div class="hero-title" id="hero-title">Cyber Neon Racer 3D</div>
+      <div class="hero-desc" id="hero-desc">High-speed retro synthwave highway racer with nitro boost, high scores and 60fps physics!</div>
+      <div class="hero-cta-row">
+        <span class="hero-badge-sub">⚡ 100% Offline Ready • Zero Lag</span>
+        <button class="btn-hero-play" onclick="launchGame('cyber-neon-racer')">PLAY NOW ▶</button>
+      </div>
+    </div>
+
+    <!-- Local Games Fast-Switch Banner -->
+    <div class="local-switch-banner" onclick="openLocalGames()">
+      <div class="local-switch-text">
+        <span>🎮 <strong>Play 10 Built-in Local Games</strong></span><br>
+        <span style="font-size: 11px; color: #94A3B8;">Tic Tac Toe, Snake, 2048, Ludo, Highway Racer & more</span>
+      </div>
+      <button class="btn-switch-local">OPEN LOCAL ➔</button>
+    </div>
+
+    <!-- Section Heading -->
+    <div class="section-title-row">
+      <div class="section-title">🕹️ EXPLORE GAMES</div>
+      <div class="games-count" id="games-count">15 Games Available</div>
+    </div>
+
     <div class="grid-container" id="games-grid">
       <!-- Injected by JavaScript -->
     </div>
+
     <div class="empty-state" id="empty-state" style="display: none;">
       <h3>No games found</h3>
       <p>Try searching with another keyword or select "All Games".</p>
@@ -428,13 +616,13 @@
     <div class="floating-bar">
       <!-- Floating Back to Home button -->
       <button id="btn-back-home" class="floating-btn btn-back" aria-label="Back to Home">
-        <span class="btn-icon">⬅️</span>
-        <span>Back to Home</span>
+        <span>⬅️</span>
+        <span>Back to Arcade</span>
       </button>
 
       <!-- Floating Full Screen button -->
       <button id="btn-fullscreen" class="floating-btn btn-fullscreen" aria-label="Full Screen">
-        <span class="btn-icon" id="fullscreen-icon">⛶</span>
+        <span id="fullscreen-icon">⛶</span>
         <span id="fullscreen-text">Full Screen</span>
       </button>
     </div>
@@ -457,85 +645,81 @@
     // Fallback if games_config.js fails to load
     const DEFAULT_GAMES = [
       {
-        id: "moto-x3m",
-        title: "Moto X3M Bike Race",
-        category: "Racing",
-        thumbnail: "https://img.gamedistribution.com/5b8f6735be8948779b5c3ff91f48645e-512x512.jpeg",
-        embedUrl: "https://html5.gamedistribution.com/5b8f6735be8948779b5c3ff91f48645e/",
-        developer: "MadPuffers",
-        description: "High-octane stunt bike racing with explosive obstacles."
-      },
-      {
-        id: "cut-the-rope",
-        title: "Cut The Rope",
-        category: "Puzzle",
-        thumbnail: "https://img.gamedistribution.com/a42b1eb3bb8445209b5522aa45550be5-512x512.jpeg",
-        embedUrl: "https://html5.gamedistribution.com/a42b1eb3bb8445209b5522aa45550be5/",
-        developer: "ZeptoLab",
-        description: "Feed candy to Om Nom by cutting ropes in physics puzzles."
-      },
-      {
-        id: "drift-boss",
-        title: "Drift Boss 3D",
-        category: "Racing",
-        thumbnail: "https://img.gamedistribution.com/0239cf247fcf4fa282337d4f9bfd81dc-512x512.jpeg",
-        embedUrl: "https://html5.gamedistribution.com/0239cf247fcf4fa282337d4f9bfd81dc/",
-        developer: "MarketJS",
-        description: "Timing-based 3D car drifting game over high-rise cliff platforms."
-      },
-      {
-        id: "bubble-shooter",
-        title: "Bubble Shooter HD",
-        category: "Puzzle",
-        thumbnail: "https://img.gamedistribution.com/5f8ef766324b42478a87b333ba3e74b3-512x512.jpeg",
-        embedUrl: "https://html5.gamedistribution.com/5f8ef766324b42478a87b333ba3e74b3/",
-        developer: "Absolutist",
-        description: "Match and pop 3 or more colored bubbles to clear the board."
-      },
-      {
-        id: "subway-runner",
-        title: "Subway Runner 3D",
+        id: "cyber-neon-racer",
+        title: "Cyber Neon Racer 3D",
         category: "Action",
-        thumbnail: "https://img.gamedistribution.com/b80155681c1c4fce844ebae50325d70e-512x512.jpeg",
-        embedUrl: "https://html5.gamedistribution.com/b80155681c1c4fce844ebae50325d70e/",
-        developer: "GameDistribution",
-        description: "Fast-paced endless runner dodging barricades, subways, and trains."
+        isOfflineBundle: true,
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
+        embedUrl: "games/cyber_racer/index.html",
+        developer: "Vault Studio",
+        rating: "4.9",
+        description: "High-speed synthwave 3D highway racer. Dodge traffic, boost nitro!"
       },
       {
-        id: "temple-quest",
-        title: "Tomb Runner 3D",
+        id: "galaxy-defender",
+        title: "Galaxy Space Defender",
         category: "Action",
-        thumbnail: "https://img.gamedistribution.com/5278a5eefc4a450684f8ee96f7cbb17b-512x512.jpeg",
-        embedUrl: "https://html5.gamedistribution.com/5278a5eefc4a450684f8ee96f7cbb17b/",
-        developer: "GameDistribution",
-        description: "Escape ancient temple traps, jump chasms, and slide under spiked gates."
+        isOfflineBundle: true,
+        thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80",
+        embedUrl: "games/galaxy_defender/index.html",
+        developer: "Vault Studio",
+        rating: "4.8",
+        description: "Battle alien armadas, dodge lasers, and upgrade fighter shields!"
       },
       {
-        id: "flappy-bird-classic",
-        title: "Flappy Bird Arcade",
+        id: "tile-2048-web",
+        title: "2048 Master Deluxe",
+        category: "Puzzle",
+        isOfflineBundle: true,
+        thumbnail: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80",
+        embedUrl: "games/tile_2048/index.html",
+        developer: "Vault Studio",
+        rating: "4.9",
+        description: "Slide and merge numbers to reach the legendary 2048 tile."
+      },
+      {
+        id: "checkers-classic",
+        title: "Classic Checkers 3D",
+        category: "Board",
+        isOfflineBundle: false,
+        thumbnail: "https://playpager.com/embed/checkers/minicheckers.jpg",
+        embedUrl: "https://playpager.com/embed/checkers/game/index.html",
+        developer: "Playpager Online",
+        rating: "4.8",
+        description: "Classic checkers board game with single player vs AI and 2 player modes."
+      },
+      {
+        id: "chess-master",
+        title: "Master Chess 3D",
+        category: "Board",
+        isOfflineBundle: false,
+        thumbnail: "https://playpager.com/embed/chess/minichess.jpg",
+        embedUrl: "https://playpager.com/embed/chess/game/index.html",
+        developer: "Playpager Online",
+        rating: "4.9",
+        description: "Full-featured Chess game with smooth touch moves and smart AI opponent."
+      },
+      {
+        id: "clumsy-bird",
+        title: "Clumsy Flappy Bird",
         category: "Arcade",
-        thumbnail: "https://img.gamedistribution.com/69d70d42e0f2405aa4e73b223405c742-512x512.jpeg",
-        embedUrl: "https://offlinegames.wshareit.com/",
-        developer: "WShareIt Portal",
-        description: "Tap to flap and navigate through the endless pipes."
+        isOfflineBundle: false,
+        thumbnail: "https://ellisonleao.github.io/clumsy-bird/data/img/bg.png",
+        embedUrl: "https://ellisonleao.github.io/clumsy-bird/",
+        developer: "MelonJS Arcade",
+        rating: "4.7",
+        description: "Addictive tap-to-fly bird arcade with silky smooth 60fps physics."
       },
       {
-        id: "itch-retro-dungeon",
-        title: "Cyber Neon Quest",
-        category: "Itch.io",
-        thumbnail: "https://img.gamedistribution.com/6c9cbe7198bb4b31a31940e4fbc87258-512x512.jpeg",
-        embedUrl: "https://offlinegames.wshareit.com/",
-        developer: "Itch.io Indie Creator",
-        description: "Retro cyberpunk adventure with synthwave beats and arcade physics."
-      },
-      {
-        id: "offline-games-portal",
-        title: "WShareIt 100+ Games Portal",
-        category: "Portal",
-        thumbnail: "https://img.gamedistribution.com/5f8ef766324b42478a87b333ba3e74b3-512x512.jpeg",
-        embedUrl: "https://offlinegames.wshareit.com/",
-        developer: "WShareIt Cloud",
-        description: "Explore the full catalog of 100+ web casual games in one portal."
+        id: "t-rex-dino",
+        title: "T-Rex Chrome Runner",
+        category: "Action",
+        isOfflineBundle: false,
+        thumbnail: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600&auto=format&fit=crop&q=80",
+        embedUrl: "https://wayou.github.io/t-rex-runner/",
+        developer: "Chromium Arcade",
+        rating: "4.9",
+        description: "The iconic endless desert runner. Jump cacti, duck pterodactyls!"
       }
     ];
 
@@ -553,11 +737,27 @@
     const btnFullscreen = document.getElementById("btn-fullscreen");
     const fullscreenText = document.getElementById("fullscreen-text");
     const fullscreenIcon = document.getElementById("fullscreen-icon");
+    const countEl = document.getElementById("games-count");
+
+    // Open local games in native compose app
+    window.openLocalGames = function() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.onOpenLocalGames === 'function') {
+        window.AndroidBridge.onOpenLocalGames();
+      }
+    };
 
     // Render Game Cards Grid
     function renderGames() {
       const filtered = gamesCatalog.filter(game => {
-        const matchesCategory = (currentCategory === "ALL" || game.category.toLowerCase() === currentCategory.toLowerCase());
+        let matchesCategory = false;
+        if (currentCategory === "ALL") {
+          matchesCategory = true;
+        } else if (currentCategory === "OFFLINE") {
+          matchesCategory = (game.isOfflineBundle === true);
+        } else {
+          matchesCategory = (game.category && game.category.toLowerCase() === currentCategory.toLowerCase());
+        }
+
         const matchesSearch = !searchQuery || (
           game.title.toLowerCase().includes(searchQuery) ||
           (game.description && game.description.toLowerCase().includes(searchQuery)) ||
@@ -565,6 +765,8 @@
         );
         return matchesCategory && matchesSearch;
       });
+
+      if (countEl) countEl.textContent = filtered.length + " Games Available";
 
       if (filtered.length === 0) {
         gridEl.innerHTML = "";
@@ -578,11 +780,15 @@
           <div class="card-thumb-wrapper">
             <img class="card-thumb" src="${game.thumbnail}" alt="${game.title}" loading="lazy" onerror="this.onerror=null; this.src='https://playpager.com/embed/checkers/minicheckers.jpg'" />
             <div class="card-category-badge">${game.category}</div>
+            ${game.isOfflineBundle ? '<div class="card-offline-badge">⚡ Offline</div>' : ''}
           </div>
           <div class="card-body">
             <div>
               <div class="card-title">${game.title}</div>
-              <div class="card-meta">${game.developer || 'Online Arcade'}</div>
+              <div class="card-meta-row">
+                <div class="card-meta">${game.developer || 'Arcade'}</div>
+                <div class="card-rating">⭐ ${game.rating || '4.8'}</div>
+              </div>
             </div>
             <button class="btn-play-card">PLAY NOW ▶</button>
           </div>
@@ -604,26 +810,6 @@
         window.AndroidBridge.onGameLaunched(game.title, game.embedUrl);
       }
     };
-
-    // When iframe loads, inject CSS if same-origin or handle frame cleanup
-    gameIframe.addEventListener("load", () => {
-      try {
-        const frameDoc = gameIframe.contentDocument || gameIframe.contentWindow.document;
-        if (frameDoc) {
-          const style = frameDoc.createElement('style');
-          style.innerHTML = `
-            .download-section, .download-container, .download-button, 
-            .download-button-wrapper, .google-play-button, .qr-code-wrapper,
-            .app-header, .app-footer, [href*="play.google.com"] {
-              display: none !important;
-            }
-          `;
-          frameDoc.head.appendChild(style);
-        }
-      } catch (e) {
-        // Cross-origin frames are already cleaned up & protected by the Android WebViewClient
-      }
-    });
 
     // Close Game and return to Arcade Grid
     function exitGame() {

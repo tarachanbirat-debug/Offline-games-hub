@@ -52,6 +52,7 @@ fun OnlineGamesScreen(
   soundEngine: VaultSoundEngine,
   hapticEngine: VaultHapticEngine,
   onBackToHub: () -> Unit,
+  onOpenLocalGames: () -> Unit = {},
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -137,6 +138,15 @@ fun OnlineGamesScreen(
             fun onBackToHome() {
               post {
                 onBackToHub()
+              }
+            }
+
+            @JavascriptInterface
+            fun onOpenLocalGames() {
+              post {
+                soundEngine.playSnap()
+                hapticEngine.vibrateTap()
+                onOpenLocalGames()
               }
             }
           }, "AndroidBridge")

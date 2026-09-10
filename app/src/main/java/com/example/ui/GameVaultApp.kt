@@ -53,8 +53,8 @@ import com.example.ui.theme.*
 import kotlinx.coroutines.launch
 
 enum class VaultTab(val title: String, val icon: ImageVector) {
-  HUB("GAMES", Icons.Default.SportsEsports),
-  ONLINE("ONLINE ARCADE", Icons.Default.Public),
+  ARCADE("ARCADE", Icons.Default.Explore),
+  LOCAL("LOCAL GAMES", Icons.Default.SportsEsports),
   FAVORITES("FAVORITES", Icons.Default.Star),
   SETTINGS("SETTINGS", Icons.Default.Settings)
 }
@@ -80,8 +80,8 @@ fun GameVaultApp() {
 
   val games by repository.allGames.collectAsState(initial = emptyList())
 
-  var showWelcomeScreen by rememberSaveable { mutableStateOf(true) }
-  var currentTab by remember { mutableStateOf(VaultTab.HUB) }
+  var showWelcomeScreen by rememberSaveable { mutableStateOf(false) }
+  var currentTab by remember { mutableStateOf(VaultTab.ARCADE) }
   var activeGame by remember { mutableStateOf<GameItem?>(null) }
   var previewGame by remember { mutableStateOf<GameItem?>(null) }
 
@@ -292,14 +292,22 @@ fun GameVaultApp() {
               .padding(innerPadding)
           ) {
             when (currentTab) {
-              VaultTab.HUB -> {
+              VaultTab.ARCADE -> {
+                OnlineGamesScreen(
+                  soundEngine = soundEngine,
+                  hapticEngine = hapticEngine,
+                  onBackToHub = { currentTab = VaultTab.LOCAL },
+                  onOpenLocalGames = { currentTab = VaultTab.LOCAL }
+                )
+              }
+              VaultTab.LOCAL -> {
                 GameHubScreen(
                   games = games,
                   soundEngine = soundEngine,
                   hapticEngine = hapticEngine,
                   initialCategory = "ALL",
                   onOpenSettings = { currentTab = VaultTab.SETTINGS },
-                  onOpenOnline = { currentTab = VaultTab.ONLINE },
+                  onOpenOnline = { currentTab = VaultTab.ARCADE },
                   onGamePlay = { gameToPlay -> launchGame(gameToPlay) },
                   onGameCardClick = { clickedGame -> previewGame = clickedGame },
                   onToggleFavorite = { favGame ->
@@ -311,13 +319,6 @@ fun GameVaultApp() {
                   }
                 )
               }
-              VaultTab.ONLINE -> {
-                OnlineGamesScreen(
-                  soundEngine = soundEngine,
-                  hapticEngine = hapticEngine,
-                  onBackToHub = { currentTab = VaultTab.HUB }
-                )
-              }
               VaultTab.FAVORITES -> {
                 GameHubScreen(
                   games = games,
@@ -325,7 +326,7 @@ fun GameVaultApp() {
                   hapticEngine = hapticEngine,
                   initialCategory = "FAVORITES",
                   onOpenSettings = { currentTab = VaultTab.SETTINGS },
-                  onOpenOnline = { currentTab = VaultTab.ONLINE },
+                  onOpenOnline = { currentTab = VaultTab.ARCADE },
                   onGamePlay = { gameToPlay -> launchGame(gameToPlay) },
                   onGameCardClick = { clickedGame -> previewGame = clickedGame },
                   onToggleFavorite = { favGame ->
@@ -408,8 +409,8 @@ private fun VaultBottomNavigation(
     VaultTab.entries.forEach { tab ->
       val isSelected = (currentTab == tab)
       val tintColor = when (tab) {
-        VaultTab.HUB -> CandyMint
-        VaultTab.ONLINE -> CandyCyan
+        VaultTab.ARCADE -> CandyCyan
+        VaultTab.LOCAL -> CandyMint
         VaultTab.FAVORITES -> CandyLemon
         VaultTab.SETTINGS -> CandySkyBlue
       }
