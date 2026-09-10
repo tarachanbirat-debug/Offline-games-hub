@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Online Arcade - Game Vault</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #060913;
+      color: #F8FAFC;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    /* ------------------------------------------------------------- */
+    /* Arcade Portal Header & Controls                               */
+    /* ------------------------------------------------------------- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11, 19, 43, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      padding: 12px 16px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00E5FF, #7C4DFF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #FFFFFF, #00E5FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(0, 230, 118, 0.15);
+      border: 1px solid rgba(0, 230, 118, 0.4);
+      color: #00E676;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .badge-live::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00E676;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Search & Categories */
+    .search-box {
+      width: 100%;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: #101B30;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 14px 10px 38px;
+      color: #FFF;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: #00E5FF;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748B;
+      font-size: 14px;
+    }
+
+    .categories-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .categories-bar::-webkit-scrollbar { display: none; }
+
+    .cat-chip {
+      background: #101B30;
+      color: #94A3B8;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cat-chip.active {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(124, 77, 255, 0.2));
+      border-color: #00E5FF;
+      color: #00E5FF;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+    }
+
+    /* ------------------------------------------------------------- */
+    /* Game Grid Layout                                              */
+    /* ------------------------------------------------------------- */
+    main {
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 14px;
+    }
+
+    @media (min-width: 600px) {
+      .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 18px;
+      }
+    }
+
+    /* Game Card */
+    .game-card {
+      background: #0E172B;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+      position: relative;
+    }
+
+    .game-card:active {
+      transform: scale(0.96);
+    }
+
+    .card-thumb-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: #18233C;
+      overflow: hidden;
+    }
+
+    .card-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .game-card:hover .card-thumb {
+      transform: scale(1.06);
+    }
+
+    .card-category-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(6, 9, 19, 0.85);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #00E5FF;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-body {
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #FFF;
+      line-height: 1.3;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      font-size: 10px;
+      color: #64748B;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-play-card {
+      background: linear-gradient(135deg, #00E5FF, #00B0FF);
+      color: #050B14;
+      font-size: 11px;
+      font-weight: 900;
+      text-align: center;
+      padding: 7px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-play-card:hover {
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+    }
+
+    /* ------------------------------------------------------------- */
+    /* Full-Screen Responsive Iframe Container                       */
+    /* ------------------------------------------------------------- */
+    #player-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+    }
+
+    #player-container.active {
+      display: flex;
+    }
+
+    #game-iframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: block;
+      background: #000;
+    }
+
+    /* Floating Overlay Action Buttons over the Iframe */
+    .floating-bar {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 10000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none; /* Let clicks pass through except on buttons */
+    }
+
+    .floating-btn {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(11, 19, 43, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(0, 229, 255, 0.5);
+      color: #FFF;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 229, 255, 0.25);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      min-height: 44px;
+    }
+
+    .floating-btn:active {
+      transform: scale(0.92);
+    }
+
+    .floating-btn.btn-back {
+      background: rgba(15, 23, 42, 0.92);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .floating-btn.btn-back:hover {
+      border-color: #00E676;
+      color: #00E676;
+    }
+
+    .floating-btn.btn-fullscreen {
+      border-color: #00E5FF;
+      color: #00E5FF;
+    }
+
+    .floating-btn.btn-fullscreen:hover {
+      background: rgba(0, 229, 255, 0.2);
+    }
+
+    .btn-icon {
+      font-size: 15px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #64748B;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Header Section -->
+  <header id="arcade-header">
+    <div class="header-top">
+      <div class="brand-title">
+        <div class="brand-icon">🎮</div>
+        <div class="brand-text">
+          <h1>ONLINE ARCADE</h1>
+          <p>Instant HTML5 Games • Embed Cloud</p>
+        </div>
+      </div>
+      <div class="badge-live">LIVE CLOUD</div>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" class="search-input" placeholder="Search games (Chess, Flappy, Dino, Checkers, Snake...)" />
+    </div>
+
+    <!-- Category Filter Chips -->
+    <div class="categories-bar" id="categories-bar">
+      <div class="cat-chip active" data-cat="ALL">All Games</div>
+      <div class="cat-chip" data-cat="Board">♟️ Board</div>
+      <div class="cat-chip" data-cat="Arcade">🕹️ Arcade</div>
+      <div class="cat-chip" data-cat="Action">⚡ Action</div>
+      <div class="cat-chip" data-cat="Puzzle">🧩 Puzzle</div>
+    </div>
+  </header>
+
+  <!-- 2. Main Game Cards Grid -->
+  <main id="arcade-main">
+    <div class="grid-container" id="games-grid">
+      <!-- Injected by JavaScript -->
+    </div>
+    <div class="empty-state" id="empty-state" style="display: none;">
+      <h3>No games found</h3>
+      <p>Try searching with another keyword or select "All Games".</p>
+    </div>
+  </main>
+
+  <!-- 3. Full-Screen Responsive Iframe Player with Floating Buttons -->
+  <div id="player-container">
+    <div class="floating-bar">
+      <!-- Floating Back to Home button -->
+      <button id="btn-back-home" class="floating-btn btn-back" aria-label="Back to Home">
+        <span class="btn-icon">⬅️</span>
+        <span>Back to Home</span>
+      </button>
+
+      <!-- Floating Full Screen button -->
+      <button id="btn-fullscreen" class="floating-btn btn-fullscreen" aria-label="Full Screen">
+        <span class="btn-icon" id="fullscreen-icon">⛶</span>
+        <span id="fullscreen-text">Full Screen</span>
+      </button>
+    </div>
+
+    <!-- 100vw, 100vh Responsive Game Iframe -->
+    <iframe
+      id="game-iframe"
+      src="about:blank"
+      style="width: 100vw; height: 100vh; border: none;"
+      allowfullscreen="true"
+      allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope; payment; web-share"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals">
+    </iframe>
+  </div>
+
+  <!-- Load External Games Config JS -->
+  <script src="games_config.js"></script>
+
+  <script>
+    // Fallback if games_config.js fails to load
+    const DEFAULT_GAMES = [
+      {
+        id: "moto-x3m",
+        title: "Moto X3M Bike Race",
+        category: "Racing",
+        thumbnail: "https://img.gamedistribution.com/5b8f6735be8948779b5c3ff91f48645e-512x512.jpeg",
+        embedUrl: "https://html5.gamedistribution.com/5b8f6735be8948779b5c3ff91f48645e/",
+        developer: "MadPuffers",
+        description: "High-octane stunt bike racing with explosive obstacles."
+      },
+      {
+        id: "cut-the-rope",
+        title: "Cut The Rope",
+        category: "Puzzle",
+        thumbnail: "https://img.gamedistribution.com/a42b1eb3bb8445209b5522aa45550be5-512x512.jpeg",
+        embedUrl: "https://html5.gamedistribution.com/a42b1eb3bb8445209b5522aa45550be5/",
+        developer: "ZeptoLab",
+        description: "Feed candy to Om Nom by cutting ropes in physics puzzles."
+      },
+      {
+        id: "drift-boss",
+        title: "Drift Boss 3D",
+        category: "Racing",
+        thumbnail: "https://img.gamedistribution.com/0239cf247fcf4fa282337d4f9bfd81dc-512x512.jpeg",
+        embedUrl: "https://html5.gamedistribution.com/0239cf247fcf4fa282337d4f9bfd81dc/",
+        developer: "MarketJS",
+        description: "Timing-based 3D car drifting game over high-rise cliff platforms."
+      },
+      {
+        id: "bubble-shooter",
+        title: "Bubble Shooter HD",
+        category: "Puzzle",
+        thumbnail: "https://img.gamedistribution.com/5f8ef766324b42478a87b333ba3e74b3-512x512.jpeg",
+        embedUrl: "https://html5.gamedistribution.com/5f8ef766324b42478a87b333ba3e74b3/",
+        developer: "Absolutist",
+        description: "Match and pop 3 or more colored bubbles to clear the board."
+      },
+      {
+        id: "subway-runner",
+        title: "Subway Runner 3D",
+        category: "Action",
+        thumbnail: "https://img.gamedistribution.com/b80155681c1c4fce844ebae50325d70e-512x512.jpeg",
+        embedUrl: "https://html5.gamedistribution.com/b80155681c1c4fce844ebae50325d70e/",
+        developer: "GameDistribution",
+        description: "Fast-paced endless runner dodging barricades, subways, and trains."
+      },
+      {
+        id: "temple-quest",
+        title: "Tomb Runner 3D",
+        category: "Action",
+        thumbnail: "https://img.gamedistribution.com/5278a5eefc4a450684f8ee96f7cbb17b-512x512.jpeg",
+        embedUrl: "https://html5.gamedistribution.com/5278a5eefc4a450684f8ee96f7cbb17b/",
+        developer: "GameDistribution",
+        description: "Escape ancient temple traps, jump chasms, and slide under spiked gates."
+      },
+      {
+        id: "flappy-bird-classic",
+        title: "Flappy Bird Arcade",
+        category: "Arcade",
+        thumbnail: "https://img.gamedistribution.com/69d70d42e0f2405aa4e73b223405c742-512x512.jpeg",
+        embedUrl: "https://offlinegames.wshareit.com/",
+        developer: "WShareIt Portal",
+        description: "Tap to flap and navigate through the endless pipes."
+      },
+      {
+        id: "itch-retro-dungeon",
+        title: "Cyber Neon Quest",
+        category: "Itch.io",
+        thumbnail: "https://img.gamedistribution.com/6c9cbe7198bb4b31a31940e4fbc87258-512x512.jpeg",
+        embedUrl: "https://offlinegames.wshareit.com/",
+        developer: "Itch.io Indie Creator",
+        description: "Retro cyberpunk adventure with synthwave beats and arcade physics."
+      },
+      {
+        id: "offline-games-portal",
+        title: "WShareIt 100+ Games Portal",
+        category: "Portal",
+        thumbnail: "https://img.gamedistribution.com/5f8ef766324b42478a87b333ba3e74b3-512x512.jpeg",
+        embedUrl: "https://offlinegames.wshareit.com/",
+        developer: "WShareIt Cloud",
+        description: "Explore the full catalog of 100+ web casual games in one portal."
+      }
+    ];
+
+    const gamesCatalog = (typeof ONLINE_GAMES !== 'undefined' && Array.isArray(ONLINE_GAMES)) ? ONLINE_GAMES : DEFAULT_GAMES;
+
+    let currentCategory = "ALL";
+    let searchQuery = "";
+
+    const gridEl = document.getElementById("games-grid");
+    const emptyEl = document.getElementById("empty-state");
+    const searchInput = document.getElementById("search-input");
+    const playerContainer = document.getElementById("player-container");
+    const gameIframe = document.getElementById("game-iframe");
+    const btnBackHome = document.getElementById("btn-back-home");
+    const btnFullscreen = document.getElementById("btn-fullscreen");
+    const fullscreenText = document.getElementById("fullscreen-text");
+    const fullscreenIcon = document.getElementById("fullscreen-icon");
+
+    // Render Game Cards Grid
+    function renderGames() {
+      const filtered = gamesCatalog.filter(game => {
+        const matchesCategory = (currentCategory === "ALL" || game.category.toLowerCase() === currentCategory.toLowerCase());
+        const matchesSearch = !searchQuery || (
+          game.title.toLowerCase().includes(searchQuery) ||
+          (game.description && game.description.toLowerCase().includes(searchQuery)) ||
+          (game.category && game.category.toLowerCase().includes(searchQuery))
+        );
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        gridEl.innerHTML = "";
+        emptyEl.style.display = "block";
+        return;
+      }
+
+      emptyEl.style.display = "none";
+      gridEl.innerHTML = filtered.map(game => `
+        <div class="game-card" onclick="launchGame('${game.id}')">
+          <div class="card-thumb-wrapper">
+            <img class="card-thumb" src="${game.thumbnail}" alt="${game.title}" loading="lazy" onerror="this.onerror=null; this.src='https://playpager.com/embed/checkers/minicheckers.jpg'" />
+            <div class="card-category-badge">${game.category}</div>
+          </div>
+          <div class="card-body">
+            <div>
+              <div class="card-title">${game.title}</div>
+              <div class="card-meta">${game.developer || 'Online Arcade'}</div>
+            </div>
+            <button class="btn-play-card">PLAY NOW ▶</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // Launch Game into Full-Screen Responsive Iframe
+    window.launchGame = function(gameId) {
+      const game = gamesCatalog.find(g => g.id === gameId);
+      if (!game) return;
+
+      gameIframe.src = game.embedUrl;
+      playerContainer.classList.add("active");
+      document.body.style.overflow = "hidden";
+
+      // Notify Android Bridge if present
+      if (window.AndroidBridge && window.AndroidBridge.onGameLaunched) {
+        window.AndroidBridge.onGameLaunched(game.title, game.embedUrl);
+      }
+    };
+
+    // When iframe loads, inject CSS if same-origin or handle frame cleanup
+    gameIframe.addEventListener("load", () => {
+      try {
+        const frameDoc = gameIframe.contentDocument || gameIframe.contentWindow.document;
+        if (frameDoc) {
+          const style = frameDoc.createElement('style');
+          style.innerHTML = `
+            .download-section, .download-container, .download-button, 
+            .download-button-wrapper, .google-play-button, .qr-code-wrapper,
+            .app-header, .app-footer, [href*="play.google.com"] {
+              display: none !important;
+            }
+          `;
+          frameDoc.head.appendChild(style);
+        }
+      } catch (e) {
+        // Cross-origin frames are already cleaned up & protected by the Android WebViewClient
+      }
+    });
+
+    // Close Game and return to Arcade Grid
+    function exitGame() {
+      gameIframe.src = "about:blank";
+      playerContainer.classList.remove("active");
+      document.body.style.overflow = "auto";
+
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      // Notify Android Bridge if present
+      if (window.AndroidBridge && window.AndroidBridge.onGameExited) {
+        window.AndroidBridge.onGameExited();
+      }
+    }
+
+    // Toggle Fullscreen on Player Container
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        playerContainer.requestFullscreen().then(() => {
+          fullscreenText.textContent = "Exit Full";
+          fullscreenIcon.textContent = "✖";
+        }).catch(err => {
+          console.warn("Fullscreen request error:", err);
+        });
+      } else {
+        document.exitFullscreen().then(() => {
+          fullscreenText.textContent = "Full Screen";
+          fullscreenIcon.textContent = "⛶";
+        }).catch(err => {
+          console.warn("Exit fullscreen error:", err);
+        });
+      }
+    }
+
+    // Event Listeners
+    btnBackHome.addEventListener("click", (e) => {
+      e.stopPropagation();
+      exitGame();
+    });
+
+    btnFullscreen.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleFullScreen();
+    });
+
+    // Android Hardware Back button hook via window
+    window.handleAndroidBack = function() {
+      if (playerContainer.classList.contains("active")) {
+        exitGame();
+        return true; // Handled
+      }
+      return false; // Let Android handle
+    };
+
+    // Category chips
+    document.querySelectorAll(".cat-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".cat-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentCategory = chip.dataset.cat;
+        renderGames();
+      });
+    });
+
+    // Search input
+    searchInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      renderGames();
+    });
+
+    // Initial render
+    renderGames();
+  </script>
+</body>
+</html>

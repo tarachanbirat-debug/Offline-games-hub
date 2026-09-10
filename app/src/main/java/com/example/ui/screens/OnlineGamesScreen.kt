@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.ViewGroup
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -15,17 +16,16 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,7 +44,7 @@ import com.example.audio.VaultHapticEngine
 import com.example.audio.VaultSoundEngine
 import com.example.ui.theme.*
 
-private const val ONLINE_GAMES_PORTAL_URL = "https://offlinegames.wshareit.com/"
+private const val ONLINE_ARCADE_ASSET_URL = "file:///android_asset/online_arcade/arcade.html"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -56,351 +56,219 @@ fun OnlineGamesScreen(
 ) {
   val context = LocalContext.current
   var webView by remember { mutableStateOf<WebView?>(null) }
-  var canGoBack by remember { mutableStateOf(false) }
-  var canGoForward by remember { mutableStateOf(false) }
+  var isGameActive by remember { mutableStateOf(false) }
+  var activeGameTitle by remember { mutableStateOf<String?>(null) }
+  var isFullscreen by remember { mutableStateOf(false) }
   var isLoading by remember { mutableStateOf(true) }
   var loadProgress by remember { mutableIntStateOf(0) }
   var hasNetworkError by remember { mutableStateOf(false) }
-  var isFullscreen by remember { mutableStateOf(false) }
-  var currentUrl by remember { mutableStateOf(ONLINE_GAMES_PORTAL_URL) }
 
-  // Hardware/System Back button intercepts web navigation history
-  BackHandler(enabled = canGoBack && !hasNetworkError) {
-    soundEngine.playPop()
-    hapticEngine.vibrateTap()
-    webView?.goBack()
+  // Hardware/System Back Button interception
+  BackHandler(enabled = true) {
+    if (isGameActive) {
+      soundEngine.playPop()
+      hapticEngine.vibrateTap()
+      webView?.evaluateJavascript("window.handleAndroidBack()", null)
+      isGameActive = false
+      activeGameTitle = null
+    } else if (webView?.canGoBack() == true) {
+      soundEngine.playPop()
+      hapticEngine.vibrateTap()
+      webView?.goBack()
+    } else {
+      onBackToHub()
+    }
   }
 
-  Column(
+  Box(
     modifier = modifier
       .fillMaxSize()
       .background(VaultBackground)
   ) {
-    // 1. Top Portal Header (Hide in fullscreen mode to maximize game area)
-    AnimatedVisibility(
-      visible = !isFullscreen,
-      enter = fadeIn(),
-      exit = fadeOut()
-    ) {
-      Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .background(VaultSurfaceElevated)
-          .border(1.dp, VaultBorderGlow)
-          .padding(horizontal = 12.dp, vertical = 8.dp)
-      ) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          // Left: Brand / Title
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
-          ) {
-            Box(
-              modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(
-                  Brush.linearGradient(listOf(CandyCyan, CandySkyBlue, CandyGrape))
-                ),
-              contentAlignment = Alignment.Center
-            ) {
-              Icon(
-                imageVector = Icons.Default.Public,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(22.dp)
-              )
-            }
+    // 1. Primary WebView Container
+    AndroidView(
+      factory = { ctx ->
+        WebView(ctx).apply {
+          layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+          )
 
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Column {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                  text = "ONLINE ARCADE",
-                  color = Color.White,
-                  fontWeight = FontWeight.Black,
-                  fontSize = 15.sp,
-                  letterSpacing = 0.5.sp
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Box(
-                  modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(CandyLemon.copy(alpha = 0.2f))
-                    .border(1.dp, CandyLemon.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 5.dp, vertical = 1.dp)
-                ) {
-                  Text(
-                    text = "100+ GAMES",
-                    color = CandyLemon,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 8.sp
-                  )
-                }
-              }
-
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                  imageVector = Icons.Default.Lock,
-                  contentDescription = "SSL Secure",
-                  tint = CandyMint,
-                  modifier = Modifier.size(10.dp)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-                Text(
-                  text = "offlinegames.wshareit.com",
-                  color = CandyMint,
-                  fontWeight = FontWeight.Bold,
-                  fontSize = 11.sp
-                )
-              }
-            }
+          settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            databaseEnabled = true
+            allowFileAccess = true
+            allowContentAccess = true
+            allowFileAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            useWideViewPort = true
+            loadWithOverviewMode = true
+            mediaPlaybackRequiresUserGesture = false
+            cacheMode = WebSettings.LOAD_DEFAULT
+            displayZoomControls = false
+            builtInZoomControls = false
           }
 
-          // Right: Action controls (Home, Fullscreen, Open in Browser)
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-          ) {
-            // Fullscreen toggle
-            IconButton(
-              onClick = {
-                soundEngine.playTap()
-                hapticEngine.vibrateTap()
-                isFullscreen = true
-              },
-              modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(VaultCardDark)
-                .testTag("online_fullscreen_toggle")
-            ) {
-              Icon(
-                imageVector = Icons.Default.Fullscreen,
-                contentDescription = "Fullscreen",
-                tint = CandySkyBlue,
-                modifier = Modifier.size(18.dp)
-              )
-            }
-
-            // Open in external browser
-            IconButton(
-              onClick = {
-                soundEngine.playTap()
-                hapticEngine.vibrateTap()
-                try {
-                  val intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentUrl))
-                  context.startActivity(intent)
-                } catch (_: Exception) { }
-              },
-              modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(VaultCardDark)
-                .testTag("online_open_browser")
-            ) {
-              Icon(
-                imageVector = Icons.Default.OpenInBrowser,
-                contentDescription = "Open in Browser",
-                tint = CandyLemon,
-                modifier = Modifier.size(18.dp)
-              )
-            }
-          }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Navigation Bar: Back, Forward, Refresh, Home
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(VaultCardDark)
-            .border(1.dp, VaultBorder, RoundedCornerShape(14.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            // Back button
-            IconButton(
-              onClick = {
-                if (canGoBack) {
-                  soundEngine.playPop()
-                  hapticEngine.vibrateTap()
-                  webView?.goBack()
-                } else {
-                  onBackToHub()
-                }
-              },
-              modifier = Modifier.size(32.dp)
-            ) {
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = if (canGoBack) Color.White else VaultTextMuted,
-                modifier = Modifier.size(18.dp)
-              )
-            }
-
-            // Forward button
-            IconButton(
-              onClick = {
-                if (canGoForward) {
-                  soundEngine.playTap()
-                  hapticEngine.vibrateTap()
-                  webView?.goForward()
-                }
-              },
-              enabled = canGoForward,
-              modifier = Modifier.size(32.dp)
-            ) {
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Forward",
-                tint = if (canGoForward) Color.White else VaultTextMuted,
-                modifier = Modifier.size(18.dp)
-              )
-            }
-
-            // Reload button
-            IconButton(
-              onClick = {
-                soundEngine.playTap()
-                hapticEngine.vibrateTap()
-                hasNetworkError = false
-                webView?.reload()
-              },
-              modifier = Modifier.size(32.dp)
-            ) {
-              Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "Reload",
-                tint = CandyCyan,
-                modifier = Modifier.size(18.dp)
-              )
-            }
-
-            // Home button (Back to portal homepage)
-            IconButton(
-              onClick = {
+          // Native Android to JS Bridge
+          addJavascriptInterface(object {
+            @JavascriptInterface
+            fun onGameLaunched(title: String, url: String) {
+              post {
+                activeGameTitle = title
+                isGameActive = true
                 soundEngine.playSnap()
                 hapticEngine.vibrateSuccess()
-                hasNetworkError = false
-                webView?.loadUrl(ONLINE_GAMES_PORTAL_URL)
-              },
-              modifier = Modifier.size(32.dp)
+              }
+            }
+
+            @JavascriptInterface
+            fun onGameExited() {
+              post {
+                activeGameTitle = null
+                isGameActive = false
+                soundEngine.playPop()
+                hapticEngine.vibrateTap()
+              }
+            }
+
+            @JavascriptInterface
+            fun onBackToHome() {
+              post {
+                onBackToHub()
+              }
+            }
+          }, "AndroidBridge")
+
+          webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+              super.onPageStarted(view, url, favicon)
+              isLoading = true
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+              super.onPageFinished(view, url)
+              isLoading = false
+
+              // Inject CSS and DOM Cleaner to remove any download buttons, Google Play banners, and headers
+              // keeping purely the game content in pure full-screen!
+              val cleanUpJs = """
+                (function() {
+                  var css = `
+                    .download-section, 
+                    .download-container,
+                    .download-button,
+                    .download-button-wrapper,
+                    .google-play-button,
+                    .qr-code-wrapper,
+                    .qr-code-container,
+                    .app-header,
+                    .header-container,
+                    .app-footer,
+                    .footer-container,
+                    [href*="play.google.com"],
+                    [href*="market://"],
+                    a[href*="games.ushareit.offlinegames"] {
+                      display: none !important;
+                      visibility: hidden !important;
+                      height: 0 !important;
+                      overflow: hidden !important;
+                      pointer-events: none !important;
+                    }
+                    body, #app, main, .games-container, .games-section {
+                      padding-top: 0 !important;
+                      padding-bottom: 0 !important;
+                      margin-top: 0 !important;
+                      margin-bottom: 0 !important;
+                    }
+                  `;
+                  var style = document.createElement('style');
+                  style.type = 'text/css';
+                  style.appendChild(document.createTextNode(css));
+                  document.head.appendChild(style);
+
+                  // Intercept and neutralize any clicks heading to Google Play or external app store
+                  document.addEventListener('click', function(e) {
+                    var target = e.target;
+                    while (target && target !== document) {
+                      if (target.tagName === 'A' && (target.href.includes('play.google.com') || target.href.includes('market://') || target.href.includes('games.ushareit'))) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                      }
+                      target = target.parentNode;
+                    }
+                  }, true);
+                })();
+              """.trimIndent()
+              view?.evaluateJavascript(cleanUpJs, null)
+            }
+
+            override fun onReceivedError(
+              view: WebView?,
+              request: WebResourceRequest?,
+              error: WebResourceError?
             ) {
-              Icon(
-                imageVector = Icons.Default.Home,
-                contentDescription = "Home",
-                tint = CandyMint,
-                modifier = Modifier.size(18.dp)
-              )
+              super.onReceivedError(view, request, error)
+              // Only trigger fallback if the asset page itself fails
+              if (request?.isForMainFrame == true && request.url.toString().startsWith("file:///")) {
+                hasNetworkError = true
+                isLoading = false
+              }
             }
-          }
 
-          // Connection status pill
-          Box(
-            modifier = Modifier
-              .clip(RoundedCornerShape(10.dp))
-              .background(CandyMint.copy(alpha = 0.15f))
-              .border(1.dp, CandyMint.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
-              .padding(horizontal = 8.dp, vertical = 3.dp)
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                modifier = Modifier
-                  .size(6.dp)
-                  .clip(CircleShape)
-                  .background(CandyMint)
-              )
-              Spacer(modifier = Modifier.width(5.dp))
-              Text(
-                text = "LIVE CLOUD",
-                color = CandyMint,
-                fontWeight = FontWeight.Black,
-                fontSize = 9.sp
-              )
-            }
-          }
-        }
+            override fun shouldOverrideUrlLoading(
+              view: WebView?,
+              request: WebResourceRequest?
+            ): Boolean {
+              val targetUrl = request?.url?.toString() ?: return false
+              
+              // Block any attempts to redirect user to Google Play Store or external APK/app downloads
+              if (targetUrl.contains("play.google.com") || 
+                  targetUrl.contains("market://") || 
+                  targetUrl.contains("games.ushareit.offlinegames") ||
+                  targetUrl.endsWith(".apk")) {
+                // Block silently so user stays inside our game app!
+                return true
+              }
 
-        // Quick Category Chips
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          listOf(
-            "🔥 All Games" to ONLINE_GAMES_PORTAL_URL,
-            "🧩 Puzzle" to "$ONLINE_GAMES_PORTAL_URL#puzzle",
-            "🏎️ Racing" to "$ONLINE_GAMES_PORTAL_URL#racing",
-            "🎯 Arcade" to "$ONLINE_GAMES_PORTAL_URL#arcade",
-            "🃏 Cards" to "$ONLINE_GAMES_PORTAL_URL#cards",
-            "⚽ Sports" to "$ONLINE_GAMES_PORTAL_URL#sports",
-            "🧠 Match" to "$ONLINE_GAMES_PORTAL_URL#match"
-          ).forEach { (label, url) ->
-            Box(
-              modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(VaultCardDark)
-                .border(1.dp, VaultBorder, RoundedCornerShape(12.dp))
-                .clickable {
-                  soundEngine.playTap()
-                  hapticEngine.vibrateTap()
-                  hasNetworkError = false
-                  webView?.loadUrl(url)
+              return if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://") || targetUrl.startsWith("file:///")) {
+                false // Handle inside WebView / iframe
+              } else {
+                try {
+                  val intent = Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl))
+                  context.startActivity(intent)
+                  true
+                } catch (_: Exception) {
+                  true
                 }
-                .padding(horizontal = 10.dp, vertical = 5.dp)
-            ) {
-              Text(
-                text = label,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 11.sp
-              )
+              }
             }
           }
-        }
-      }
-    }
 
-    // Floating Exit Fullscreen Button when in Fullscreen Mode
-    if (isFullscreen) {
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(8.dp),
-        contentAlignment = Alignment.TopEnd
-      ) {
-        Button(
-          onClick = {
-            soundEngine.playTap()
-            hapticEngine.vibrateTap()
-            isFullscreen = false
-          },
-          colors = ButtonDefaults.buttonColors(containerColor = VaultSurfaceElevated.copy(alpha = 0.9f)),
-          shape = RoundedCornerShape(16.dp),
-          contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-          modifier = Modifier.border(1.dp, CandyCyan, RoundedCornerShape(16.dp))
-        ) {
-          Icon(Icons.Default.FullscreenExit, contentDescription = null, tint = CandyCyan, modifier = Modifier.size(16.dp))
-          Spacer(modifier = Modifier.width(4.dp))
-          Text("EXIT FULLSCREEN", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black)
-        }
-      }
-    }
+          webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+              loadProgress = newProgress
+              if (newProgress >= 100) {
+                isLoading = false
+              }
+            }
+          }
 
-    // Loading Progress Indicator
+          loadUrl(ONLINE_ARCADE_ASSET_URL)
+          webView = this
+        }
+      },
+      update = { view ->
+        webView = view
+      },
+      modifier = Modifier
+        .fillMaxSize()
+        .testTag("online_arcade_webview")
+    )
+
+    // 2. Loading Progress Indicator
     if (isLoading && loadProgress < 100) {
       LinearProgressIndicator(
         progress = { loadProgress / 100f },
@@ -409,209 +277,173 @@ fun OnlineGamesScreen(
         modifier = Modifier
           .fillMaxWidth()
           .height(3.dp)
+          .align(Alignment.TopCenter)
       )
     }
 
-    // 2. Main Content: WebView or Offline Error Fallback
-    Box(
+    // 3. Floating "Back to Home" and "Full Screen" Buttons over the Iframe
+    // Shown prominently whenever a game is active
+    AnimatedVisibility(
+      visible = isGameActive,
+      enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+      exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
       modifier = Modifier
-        .fillMaxSize()
-        .weight(1f)
+        .align(Alignment.TopCenter)
+        .statusBarsPadding()
+        .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
-      if (hasNetworkError) {
-        // Offline / No Internet Connection Fallback UI
-        Column(
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(30.dp))
+          .background(VaultSurfaceElevated.copy(alpha = 0.92f))
+          .border(1.5.dp, Brush.horizontalGradient(listOf(CandyCyan, CandyMint)), RoundedCornerShape(30.dp))
+          .padding(horizontal = 10.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        // Floating Back to Home button
+        Button(
+          onClick = {
+            soundEngine.playPop()
+            hapticEngine.vibrateTap()
+            webView?.evaluateJavascript("window.handleAndroidBack()", null)
+            isGameActive = false
+            activeGameTitle = null
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = VaultCardDark),
+          shape = RoundedCornerShape(20.dp),
+          contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
           modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.Center
+            .border(1.dp, CandyWatermelon.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
+            .testTag("floating_back_to_home")
         ) {
-          Box(
-            modifier = Modifier
-              .size(72.dp)
-              .clip(CircleShape)
-              .background(CandyWatermelon.copy(alpha = 0.15f))
-              .border(1.5.dp, CandyWatermelon, CircleShape),
-            contentAlignment = Alignment.Center
-          ) {
-            Icon(
-              imageVector = Icons.Default.WifiOff,
-              contentDescription = null,
-              tint = CandyWatermelon,
-              modifier = Modifier.size(36.dp)
-            )
-          }
-
-          Spacer(modifier = Modifier.height(16.dp))
-
+          Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Back to Home",
+            tint = CandyWatermelon,
+            modifier = Modifier.size(18.dp)
+          )
+          Spacer(modifier = Modifier.width(6.dp))
           Text(
-            text = "Network Connection Needed",
+            text = "BACK TO HOME",
             color = Color.White,
             fontWeight = FontWeight.Black,
-            fontSize = 20.sp
+            fontSize = 11.sp
           )
-
-          Text(
-            text = "The Online Games portal (offlinegames.wshareit.com) requires an active internet connection to load new games.\n\nYou can also play our 10 native offline games anytime without Wi-Fi!",
-            color = VaultTextSecondary,
-            fontSize = 13.sp,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 20.dp)
-          )
-
-          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
-              onClick = {
-                soundEngine.playTap()
-                hapticEngine.vibrateTap()
-                hasNetworkError = false
-                webView?.reload()
-              },
-              colors = ButtonDefaults.buttonColors(containerColor = CandyCyan),
-              shape = RoundedCornerShape(16.dp)
-            ) {
-              Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.Black)
-              Spacer(modifier = Modifier.width(6.dp))
-              Text("RETRY", color = Color.Black, fontWeight = FontWeight.Black)
-            }
-
-            OutlinedButton(
-              onClick = {
-                soundEngine.playSnap()
-                hapticEngine.vibrateTap()
-                onBackToHub()
-              },
-              shape = RoundedCornerShape(16.dp),
-              border = androidx.compose.foundation.BorderStroke(1.dp, CandyMint)
-            ) {
-              Text("PLAY OFFLINE GAMES", color = CandyMint, fontWeight = FontWeight.Bold)
-            }
-          }
         }
-      } else {
-        // High Performance Android WebView
-        AndroidView(
-          factory = { ctx ->
-            WebView(ctx).apply {
-              layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-              )
 
-              settings.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                databaseEnabled = true
-                allowFileAccess = true
-                allowContentAccess = true
-                useWideViewPort = true
-                loadWithOverviewMode = true
-                mediaPlaybackRequiresUserGesture = false
-                cacheMode = WebSettings.LOAD_DEFAULT
-                displayZoomControls = false
-                builtInZoomControls = false
-              }
+        // Active Game Title Pill
+        activeGameTitle?.let { title ->
+          Text(
+            text = title,
+            color = CandyMint,
+            fontWeight = FontWeight.Black,
+            fontSize = 12.sp,
+            maxLines = 1,
+            modifier = Modifier.padding(horizontal = 8.dp)
+          )
+        }
 
-              webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                  super.onPageStarted(view, url, favicon)
-                  isLoading = true
-                  url?.let { currentUrl = it }
-                  canGoBack = view?.canGoBack() == true
-                  canGoForward = view?.canGoForward() == true
-                }
-
-                override fun onPageFinished(view: WebView?, url: String?) {
-                  super.onPageFinished(view, url)
-                  isLoading = false
-                  url?.let { currentUrl = it }
-                  canGoBack = view?.canGoBack() == true
-                  canGoForward = view?.canGoForward() == true
-                }
-
-                override fun onReceivedError(
-                  view: WebView?,
-                  request: WebResourceRequest?,
-                  error: WebResourceError?
-                ) {
-                  super.onReceivedError(view, request, error)
-                  if (request?.isForMainFrame == true) {
-                    hasNetworkError = true
-                    isLoading = false
-                  }
-                }
-
-                override fun shouldOverrideUrlLoading(
-                  view: WebView?,
-                  request: WebResourceRequest?
-                ): Boolean {
-                  val targetUrl = request?.url?.toString() ?: return false
-                  return if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://")) {
-                    currentUrl = targetUrl
-                    false // Handle inside WebView
-                  } else {
-                    try {
-                      val intent = Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl))
-                      context.startActivity(intent)
-                      true
-                    } catch (_: Exception) {
-                      true
-                    }
-                  }
-                }
-              }
-
-              webChromeClient = object : WebChromeClient() {
-                override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                  loadProgress = newProgress
-                  if (newProgress >= 100) {
-                    isLoading = false
-                  }
-                }
-              }
-
-              loadUrl(ONLINE_GAMES_PORTAL_URL)
-              webView = this
-            }
+        // Floating Full Screen Toggle button
+        Button(
+          onClick = {
+            soundEngine.playTap()
+            hapticEngine.vibrateTap()
+            isFullscreen = !isFullscreen
+            webView?.evaluateJavascript("window.toggleFullScreen()", null)
           },
-          update = { view ->
-            webView = view
-            canGoBack = view.canGoBack()
-            canGoForward = view.canGoForward()
-          },
+          colors = ButtonDefaults.buttonColors(containerColor = CandyCyan),
+          shape = RoundedCornerShape(20.dp),
+          contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+          modifier = Modifier.testTag("floating_fullscreen_toggle")
+        ) {
+          Icon(
+            imageVector = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
+            contentDescription = "Full Screen",
+            tint = Color.Black,
+            modifier = Modifier.size(18.dp)
+          )
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(
+            text = if (isFullscreen) "EXIT FULL" else "FULL SCREEN",
+            color = Color.Black,
+            fontWeight = FontWeight.Black,
+            fontSize = 11.sp
+          )
+        }
+      }
+    }
+
+    // 4. Offline Fallback screen (in case asset or engine has error)
+    if (hasNetworkError) {
+      Column(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(VaultBackground)
+          .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+      ) {
+        Box(
           modifier = Modifier
-            .fillMaxSize()
-            .testTag("online_arcade_webview")
+            .size(72.dp)
+            .clip(CircleShape)
+            .background(CandyWatermelon.copy(alpha = 0.15f))
+            .border(1.5.dp, CandyWatermelon, CircleShape),
+          contentAlignment = Alignment.Center
+        ) {
+          Icon(
+            imageVector = Icons.Default.PublicOff,
+            contentDescription = null,
+            tint = CandyWatermelon,
+            modifier = Modifier.size(36.dp)
+          )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+          text = "Online Arcade Portal",
+          color = Color.White,
+          fontWeight = FontWeight.Black,
+          fontSize = 20.sp
         )
 
-        // Loading Overlay Spinner for initial load
-        if (isLoading && loadProgress < 40) {
-          Box(
-            modifier = Modifier
-              .fillMaxSize()
-              .background(VaultBackground.copy(alpha = 0.85f)),
-            contentAlignment = Alignment.Center
+        Text(
+          text = "Embed games require an active internet connection to load external iframes (GameDistribution, Itch.io, etc.).\n\nYou can also play our 10 native offline games without any Wi-Fi!",
+          color = VaultTextSecondary,
+          fontSize = 13.sp,
+          textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+          modifier = Modifier.padding(top = 8.dp, bottom = 20.dp)
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+          Button(
+            onClick = {
+              soundEngine.playTap()
+              hapticEngine.vibrateTap()
+              hasNetworkError = false
+              webView?.loadUrl(ONLINE_ARCADE_ASSET_URL)
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = CandyCyan),
+            shape = RoundedCornerShape(16.dp)
           ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              CircularProgressIndicator(
-                color = CandyCyan,
-                modifier = Modifier.size(42.dp),
-                strokeWidth = 3.5.dp
-              )
-              Spacer(modifier = Modifier.height(14.dp))
-              Text(
-                text = "Connecting to Online Arcade...",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
-              )
-              Text(
-                text = "Loading offlinegames.wshareit.com",
-                color = VaultTextSecondary,
-                fontSize = 11.sp
-              )
-            }
+            Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.Black)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("RETRY", color = Color.Black, fontWeight = FontWeight.Black)
+          }
+
+          OutlinedButton(
+            onClick = {
+              soundEngine.playSnap()
+              hapticEngine.vibrateTap()
+              onBackToHub()
+            },
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, CandyMint)
+          ) {
+            Text("PLAY OFFLINE GAMES", color = CandyMint, fontWeight = FontWeight.Bold)
           }
         }
       }

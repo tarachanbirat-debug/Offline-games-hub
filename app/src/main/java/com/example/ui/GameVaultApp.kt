@@ -54,7 +54,7 @@ import kotlinx.coroutines.launch
 
 enum class VaultTab(val title: String, val icon: ImageVector) {
   HUB("GAMES", Icons.Default.SportsEsports),
-  ONLINE("ONLINE", Icons.Default.Public),
+  ONLINE("ONLINE ARCADE", Icons.Default.Public),
   FAVORITES("FAVORITES", Icons.Default.Star),
   SETTINGS("SETTINGS", Icons.Default.Settings)
 }

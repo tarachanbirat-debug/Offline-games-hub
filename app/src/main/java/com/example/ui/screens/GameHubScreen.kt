@@ -278,7 +278,7 @@ fun GameHubScreen(
               Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Text(
-                    text = "ONLINE GAMES PORTAL",
+                    text = "ONLINE ARCADE",
                     color = Color.White,
                     fontWeight = FontWeight.Black,
                     fontSize = 13.sp
@@ -291,7 +291,7 @@ fun GameHubScreen(
                       .padding(horizontal = 5.dp, vertical = 1.dp)
                   ) {
                     Text(
-                      text = "100+ FREE",
+                      text = "EMBEDDED",
                       color = Color.Black,
                       fontWeight = FontWeight.Black,
                       fontSize = 8.sp
@@ -299,7 +299,7 @@ fun GameHubScreen(
                   }
                 }
                 Text(
-                  text = "offlinegames.wshareit.com • Instant Web Arcade",
+                  text = "GameDistribution, Itch.io & 100+ Free Instant Games",
                   color = CandyMint,
                   fontWeight = FontWeight.Bold,
                   fontSize = 10.sp,
