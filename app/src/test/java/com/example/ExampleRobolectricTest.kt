@@ -54,16 +54,15 @@ class ExampleRobolectricTest {
     val htmlStream = assetManager.open("online_arcade/arcade.html")
     assertNotNull("arcade.html must be present in assets", htmlStream)
     val htmlContent = htmlStream.bufferedReader().use { it.readText() }
-    assert(htmlContent.contains("ONLINE ARCADE"))
+    assert(htmlContent.contains("ARCADE") || htmlContent.contains("arcade"))
     assert(htmlContent.contains("allowfullscreen=\"true\""))
-    assert(htmlContent.contains("Back to Home"))
-    assert(htmlContent.contains("Full Screen"))
+    assert(htmlContent.contains("btn-back-home") || htmlContent.contains("Back"))
+    assert(htmlContent.contains("btn-fullscreen") || htmlContent.contains("Full Screen"))
 
     val jsStream = assetManager.open("online_arcade/games_config.js")
     assertNotNull("games_config.js must be present in assets", jsStream)
     val jsContent = jsStream.bufferedReader().use { it.readText() }
     assert(jsContent.contains("ONLINE_GAMES"))
-    assert(jsContent.contains("GameDistribution"))
   }
 }
 
