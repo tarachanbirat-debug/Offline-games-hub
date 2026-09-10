@@ -1,0 +1,6 @@
+{
+  "name": "Game Vault",
+  "description": "Production Game Vault Platform with real multi-technology adapters, package manager, and flagship engines.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

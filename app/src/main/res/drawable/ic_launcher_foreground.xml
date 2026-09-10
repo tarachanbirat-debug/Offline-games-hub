@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Glow / Vault Base -->
+    <path
+        android:fillColor="#3000D2FF"
+        android:pathData="M54,26 C36,26 24,38 24,56 C24,74 36,86 54,86 C72,86 84,74 84,56 C84,38 72,26 54,26 Z" />
+
+    <!-- 2.5D Gamepad Body Base (Plum Slate with bevel) -->
+    <path
+        android:fillColor="#241B42"
+        android:pathData="M34,44 L74,44 C81,44 86,49 86,56 L86,64 C86,73 78,80 69,80 L67,80 C65,80 63,78 62,76 L59,70 C57,67 51,67 49,70 L46,76 C45,78 43,80 41,80 L39,80 C30,80 22,73 22,64 L22,56 C22,49 27,44 34,44 Z" />
+
+    <!-- Gamepad Surface (Vibrant Violet / Grape) -->
+    <path
+        android:fillColor="#4D2B8A"
+        android:pathData="M34,42 L74,42 C80,42 85,47 85,53 L85,62 C85,70 78,76 70,76 L68,76 C66,76 64,74 63,72 L60,67 C58,64 50,64 48,67 L45,72 C44,74 42,76 40,76 L38,76 C30,76 23,70 23,62 L23,53 C23,47 28,42 34,42 Z" />
+
+    <!-- Top Highlight Bevel -->
+    <path
+        android:fillColor="#8068C4"
+        android:pathData="M34,42 L74,42 C79,42 83,45 84,49 C80,46 76,45 72,45 L36,45 C32,45 28,46 24,49 C25,45 29,42 34,42 Z" />
+
+    <!-- D-Pad (Mint Green 2.5D) -->
+    <path
+        android:fillColor="#00A86B"
+        android:pathData="M33,52 L37,52 L37,48 C37,46.9 37.9,46 39,46 L41,46 C42.1,46 43,46.9 43,48 L43,52 L47,52 C48.1,52 49,52.9 49,54 L49,56 C49,57.1 48.1,58 47,58 L43,58 L43,62 C43,63.1 42.1,64 41,64 L39,64 C37.9,64 37,63.1 37,62 L37,58 L33,58 C31.9,58 31,57.1 31,56 L31,54 C31,52.9 31.9,52 33,52 Z" />
+    <path
+        android:fillColor="#00E699"
+        android:pathData="M33,51 L37,51 L37,47 C37,46.4 37.4,46 38,46 L40,46 C40.6,46 41,46.4 41,47 L41,51 L45,51 C45.6,51 46,45.4 46,47 L46,49 C46,49.6 45.6,50 45,50 L41,50 L41,54 C41,54.6 40.6,55 40,55 L38,55 C37.4,55 37,54.6 37,54 L37,50 L33,50 C32.4,50 32,49.6 32,49 L32,47 C32,46.4 32.4,46 33,46 Z" />
+
+    <!-- Candy Action Buttons (Watermelon, Cyan, Lemon, Tangerine) -->
+    <!-- Button Top (Lemon) -->
+    <path
+        android:fillColor="#E6B800"
+        android:pathData="M67,49m-3.5,0a3.5,3.5 0,1,1 7,0a3.5,3.5 0,1,1 -7,0" />
+    <path
+        android:fillColor="#FFD600"
+        android:pathData="M67,48m-3,0a3,3 0,1,1 6,0a3,3 0,1,1 -6,0" />
+
+    <!-- Button Right (Watermelon Pink) -->
+    <path
+        android:fillColor="#D81B60"
+        android:pathData="M74,56m-3.5,0a3.5,3.5 0,1,1 7,0a3.5,3.5 0,1,1 -7,0" />
+    <path
+        android:fillColor="#FF3366"
+        android:pathData="M74,55m-3,0a3,3 0,1,1 6,0a3,3 0,1,1 -6,0" />
+
+    <!-- Button Bottom (Cyan) -->
+    <path
+        android:fillColor="#0099CC"
+        android:pathData="M67,63m-3.5,0a3.5,3.5 0,1,1 7,0a3.5,3.5 0,1,1 -7,0" />
+    <path
+        android:fillColor="#00D2FF"
+        android:pathData="M67,62m-3,0a3,3 0,1,1 6,0a3,3 0,1,1 -6,0" />
+
+    <!-- Button Left (Tangerine) -->
+    <path
+        android:fillColor="#E65100"
+        android:pathData="M60,56m-3.5,0a3.5,3.5 0,1,1 7,0a3.5,3.5 0,1,1 -7,0" />
+    <path
+        android:fillColor="#FF7A00"
+        android:pathData="M60,55m-3,0a3,3 0,1,1 6,0a3,3 0,1,1 -6,0" />
+
+    <!-- Central Vault Crown / Star Emblem -->
+    <path
+        android:fillColor="#FFD600"
+        android:pathData="M54,49 L55.2,52.5 L59,52.5 L56,54.7 L57.1,58.2 L54,56 L50.9,58.2 L52,54.7 L49,52.5 L52.8,52.5 Z" />
+</vector>
