@@ -358,4 +358,7 @@ class GameVaultRepository(
 
   fun getHapticsEnabled(): Boolean = prefs.getBoolean("HAPTICS_ENABLED", true)
   fun setHapticsEnabled(enabled: Boolean) = prefs.edit().putBoolean("HAPTICS_ENABLED", enabled).apply()
+
+  fun getSelectedThemeId(): String = prefs.getString("SELECTED_THEME_ID", "pop_2d") ?: "pop_2d"
+  fun setSelectedThemeId(themeId: String) = prefs.edit().putString("SELECTED_THEME_ID", themeId).apply()
 }

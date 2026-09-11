@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Neon Hextris</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 12px; font-size: 18px; font-weight: bold; background: #1E293B; }
+canvas { display: block; margin: 20px auto; background: #1E293B; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+.controls { display: flex; justify-content: center; gap: 30px; margin-top: 10px; }
+button { background: #38BDF8; color: #000; border: none; font-size: 20px; padding: 15px 40px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="320" height="380"></canvas>
+<div class="controls">
+  <button onclick="angle -= 0.6">◀ ROTATE</button>
+  <button onclick="angle += 0.6">ROTATE ▶</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let score = 0, angle = 0, blocks = [];
+let best = localStorage.getItem('hextris_high') || 0;
+document.getElementById('best').innerText = best;
+
+function spawn() {
+  blocks.push({ r: 200, a: Math.random() * Math.PI * 2, color: ['#FF6B6B', '#10B981', '#38BDF8', '#F59E0B'][Math.floor(Math.random()*4)] });
+}
+setInterval(spawn, 1500);
+
+function update() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height/2);
+  ctx.rotate(angle);
+  ctx.fillStyle = '#334155';
+  ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  blocks.forEach((b, i) => {
+    b.r -= 1.5;
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2);
+    let x = b.r * Math.cos(b.a);
+    let y = b.r * Math.sin(b.a);
+    ctx.fillStyle = b.color;
+    ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    if(b.r < 40) {
+      score += 20;
+      document.getElementById('score').innerText = score;
+      if(score > best) { best = score; localStorage.setItem('hextris_high', best); document.getElementById('best').innerText = best; }
+      blocks.splice(i, 1);
+    }
+  });
+
+  requestAnimationFrame(update);
+}
+spawn(); update();
+</script>
+</body>
+</html>

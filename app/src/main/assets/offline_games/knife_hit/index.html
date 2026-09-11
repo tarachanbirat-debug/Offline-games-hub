@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Tetris Neon</title>
+<title>Knife Hit</title>
 <style>
 body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
 #ui { display: flex; justify-content: space-around; padding: 12px; font-size: 18px; font-weight: bold; background: #1E293B; }
 canvas { display: block; margin: 15px auto; background: #1E293B; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-.controls { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
-button { background: #8B5CF6; color: #fff; border: none; font-size: 18px; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+.controls { margin-top: 10px; }
+button { background: #EF4444; color: #fff; border: none; font-size: 20px; padding: 14px 40px; border-radius: 12px; font-weight: bold; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -17,29 +17,32 @@ button { background: #8B5CF6; color: #fff; border: none; font-size: 18px; paddin
   <div>SCORE: <span id="score">0</span></div>
   <div>BEST: <span id="best">0</span></div>
 </div>
-<canvas id="canvas" width="200" height="400"></canvas>
+<canvas id="canvas" width="320" height="380"></canvas>
 <div class="controls">
-  <button onclick="px--">◀</button>
-  <button onclick="py = (py + 1) % 18">▼</button>
-  <button onclick="px++">▶</button>
+  <button onclick="throwKnife()">THROW 🗡️</button>
 </div>
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-let score = 0, px = 4, py = 0;
-let best = localStorage.getItem('tetris_high') || 0;
+let score = 0, angle = 0;
+let best = localStorage.getItem('knife_high') || 0;
 document.getElementById('best').innerText = best;
 
-setInterval(() => {
-  score += 10;
+function throwKnife() {
+  score += 50;
   document.getElementById('score').innerText = score;
-  if(score > best) { best = score; localStorage.setItem('tetris_high', best); document.getElementById('best').innerText = best; }
-}, 1000);
+  if(score > best) { best = score; localStorage.setItem('knife_high', best); document.getElementById('best').innerText = best; }
+}
 
 function update() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = '#8B5CF6';
-  ctx.fillRect(px * 20, py * 20, 40, 40);
+  angle += 0.03;
+  ctx.save();
+  ctx.translate(160, 150);
+  ctx.rotate(angle);
+  ctx.fillStyle = '#EF4444';
+  ctx.beginPath(); ctx.arc(0,0,50,0,Math.PI*2); ctx.fill();
+  ctx.restore();
   requestAnimationFrame(update);
 }
 update();

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Flappy Deluxe</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 15px; font-size: 18px; font-weight: bold; background: #1E293B; }
+canvas { display: block; margin: 20px auto; background: linear-gradient(#38BDF8, #1E293B); box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+.controls { margin-top: 15px; }
+button { background: #FACC15; color: #000; border: none; font-size: 22px; padding: 15px 50px; border-radius: 14px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="340" height="400"></canvas>
+<div class="controls">
+  <button onclick="flap()">TAP TO FLAP 🐤</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let birdY = 200, velocity = 0, gravity = 0.5, lift = -8;
+let pipes = [], score = 0;
+let best = localStorage.getItem('flappy_high') || 0;
+document.getElementById('best').innerText = best;
+
+function flap() { velocity = lift; }
+
+setInterval(() => {
+  let h = Math.floor(Math.random() * 150) + 80;
+  pipes.push({ x: 340, top: h, bottom: h + 130, passed: false });
+}, 1800);
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  velocity += gravity;
+  birdY += velocity;
+
+  if (birdY > canvas.height - 20 || birdY < 0) {
+    if(score > best) { best = score; localStorage.setItem('flappy_high', best); }
+    alert('Game Over! Score: ' + score);
+    score = 0; birdY = 200; velocity = 0; pipes = [];
+    document.getElementById('best').innerText = best;
+  }
+
+  pipes.forEach(p => {
+    p.x -= 3;
+    if (p.x < 60 && p.x > 30 && (birdY < p.top || birdY > p.bottom)) {
+      if(score > best) { best = score; localStorage.setItem('flappy_high', best); }
+      alert('Game Over! Score: ' + score);
+      score = 0; birdY = 200; velocity = 0; pipes = [];
+      document.getElementById('best').innerText = best;
+    }
+    if (p.x < 40 && !p.passed) { score++; document.getElementById('score').innerText = score; p.passed = true; }
+  });
+  pipes = pipes.filter(p => p.x > -60);
+
+  // Pipes
+  ctx.fillStyle = '#10B981';
+  pipes.forEach(p => {
+    ctx.fillRect(p.x, 0, 50, p.top);
+    ctx.fillRect(p.x, p.bottom, 50, canvas.height - p.bottom);
+  });
+
+  // Bird
+  ctx.fillStyle = '#FACC15';
+  ctx.beginPath(); ctx.arc(60, birdY, 15, 0, Math.PI*2); ctx.fill();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

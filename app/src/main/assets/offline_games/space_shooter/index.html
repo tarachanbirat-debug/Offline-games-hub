@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Galaxy Shooter</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+canvas { display: block; margin: 0 auto; background: #060913; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+#ui { position: absolute; top: 15px; width: 100%; font-size: 22px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+</style>
+</head>
+<body>
+<div id="ui">SCORE: <span id="score">0</span></div>
+<canvas id="canvas" width="360" height="600"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let playerX = 180, bullets = [], enemies = [], score = 0;
+
+function spawnEnemy() {
+  enemies.push({ x: Math.random() * 320 + 20, y: -20, speed: 2 + Math.random() * 2 });
+}
+setInterval(spawnEnemy, 1200);
+
+window.addEventListener('touchmove', (e) => {
+  playerX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+});
+window.addEventListener('mousemove', (e) => {
+  playerX = e.clientX - canvas.getBoundingClientRect().left;
+});
+window.addEventListener('click', () => {
+  bullets.push({ x: playerX, y: 530 });
+});
+
+function update() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.fillStyle = '#38BDF8';
+  bullets.forEach((b, index) => {
+    b.y -= 8;
+    ctx.fillRect(b.x - 3, b.y, 6, 15);
+    if(b.y < 0) bullets.splice(index, 1);
+  });
+
+  ctx.fillStyle = '#FF6B6B';
+  enemies.forEach((e, eIndex) => {
+    e.y += e.speed;
+    ctx.fillRect(e.x - 15, e.y - 15, 30, 30);
+
+    bullets.forEach((b, bIndex) => {
+      if(Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) {
+        score += 100;
+        document.getElementById('score').innerText = score;
+        enemies.splice(eIndex, 1);
+        bullets.splice(bIndex, 1);
+      }
+    });
+
+    if(e.y > canvas.height) enemies.splice(eIndex, 1);
+  });
+
+  ctx.fillStyle = '#10B981';
+  ctx.beginPath();
+  ctx.moveTo(playerX, 530);
+  ctx.lineTo(playerX - 20, 570);
+  ctx.lineTo(playerX + 20, 570);
+  ctx.closePath();
+  ctx.fill();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

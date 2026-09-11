@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Clumsy Bird</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+canvas { display: block; margin: 0 auto; background: linear-gradient(#38BDF8, #1E293B); box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+#ui { position: absolute; top: 15px; width: 100%; font-size: 24px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+</style>
+</head>
+<body>
+<div id="ui">SCORE: <span id="score">0</span></div>
+<canvas id="canvas" width="360" height="600"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let birdY = 300, velocity = 0, gravity = 0.5, lift = -9;
+let pipes = [];
+let score = 0;
+let gameOver = false;
+
+function spawnPipe() {
+  let h = Math.floor(Math.random() * 200) + 100;
+  pipes.push({ x: 360, top: h, bottom: h + 140, passed: false });
+}
+
+setInterval(spawnPipe, 2000);
+
+function jump() {
+  if (gameOver) {
+    birdY = 300; velocity = 0; pipes = []; score = 0; gameOver = false;
+  } else {
+    velocity = lift;
+  }
+}
+
+window.addEventListener('click', jump);
+window.addEventListener('touchstart', jump);
+
+function update() {
+  if (!gameOver) {
+    velocity += gravity;
+    birdY += velocity;
+
+    if (birdY > canvas.height - 30 || birdY < 0) {
+      gameOver = true;
+    }
+
+    pipes.forEach(p => {
+      p.x -= 3;
+      if (p.x < 50 && p.x > 30 && birdY > p.top && birdY < p.bottom) {
+        if (!p.passed) { score++; document.getElementById('score').innerText = score; p.passed = true; }
+      }
+      if (p.x < 50 && (birdY < p.top || birdY > p.bottom)) {
+        gameOver = true;
+      }
+    });
+
+    pipes = pipes.filter(p => p.x > -60);
+  }
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  ctx.fillStyle = '#10B981';
+  pipes.forEach(p => {
+    ctx.fillRect(p.x, 0, 50, p.top);
+    ctx.fillRect(p.x, p.bottom, 50, canvas.height - p.bottom);
+  });
+
+  ctx.fillStyle = '#F59E0B';
+  ctx.beginPath();
+  ctx.arc(60, birdY, 15, 0, Math.PI*2);
+  ctx.fill();
+
+  if (gameOver) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 30px sans-serif';
+    ctx.fillText('GAME OVER', 90, 280);
+    ctx.font = '16px sans-serif';
+    ctx.fillText('Tap to Restart', 130, 320);
+  }
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

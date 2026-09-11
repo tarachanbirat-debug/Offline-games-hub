@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Subway Runner 2D</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 12px; font-size: 18px; font-weight: bold; background: #1E293B; }
+canvas { display: block; margin: 10px auto; background: linear-gradient(#1E293B, #0F172A); box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+.controls { display: flex; justify-content: center; gap: 20px; margin-top: 10px; }
+button { background: #38BDF8; color: #000; border: none; font-size: 20px; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="360" height="420"></canvas>
+<div class="controls">
+  <button onclick="moveLane(-1)">◀ LEFT</button>
+  <button onclick="jump()">JUMP ▲</button>
+  <button onclick="moveLane(1)">RIGHT ▶</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let lanes = [60, 180, 300];
+let laneIndex = 1;
+let playerY = 340;
+let isJumping = false;
+let jumpVel = 0;
+let score = 0;
+let best = localStorage.getItem('runner_high') || 0;
+document.getElementById('best').innerText = best;
+let obstacles = [];
+let speed = 4;
+
+function moveLane(dir) {
+  laneIndex = Math.max(0, Math.min(2, laneIndex + dir));
+}
+
+function jump() {
+  if (!isJumping) {
+    isJumping = true;
+    jumpVel = -10;
+  }
+}
+
+setInterval(() => {
+  let l = Math.floor(Math.random() * 3);
+  obstacles.push({ lane: l, y: -40, passed: false });
+}, 1500);
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  if (isJumping) {
+    playerY += jumpVel;
+    jumpVel += 0.6;
+    if (playerY >= 340) { playerY = 340; isJumping = false; }
+  }
+
+  speed += 0.001;
+  score += 1;
+  document.getElementById('score').innerText = score;
+
+  // Draw lanes
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 2;
+  [120, 240].forEach(x => {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  });
+
+  obstacles.forEach((obs, index) => {
+    obs.y += speed;
+    ctx.fillStyle = '#EF4444';
+    ctx.fillRect(lanes[obs.lane] - 25, obs.y, 50, 35);
+
+    if (obs.y > 300 && obs.y < 380 && obs.lane === laneIndex && !isJumping) {
+      if (score > best) { best = score; localStorage.setItem('runner_high', best); }
+      alert('Game Over! Score: ' + score);
+      score = 0; speed = 4; obstacles = [];
+      document.getElementById('best').innerText = best;
+    }
+    if (obs.y > canvas.height) obstacles.splice(index, 1);
+  });
+
+  // Draw Player
+  ctx.fillStyle = '#10B981';
+  ctx.beginPath();
+  ctx.arc(lanes[laneIndex], playerY - 15, 20, 0, Math.PI*2);
+  ctx.fill();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

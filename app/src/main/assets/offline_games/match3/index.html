@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Candy Pop Match-3</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 15px; font-size: 18px; font-weight: bold; background: #1E293B; }
+#grid { display: grid; grid-template-columns: repeat(6, 50px); gap: 6px; justify-content: center; margin: 40px auto; background: #1E293B; padding: 12px; border-radius: 12px; }
+.gem { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: #334155; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<div id="grid"></div>
+<script>
+const emojis = ['🍬', '⭐', '🍭', '🍫', '🍩'];
+let grid = Array(6).fill().map(() => Array(6).fill(''));
+let score = 0;
+let best = localStorage.getItem('match3_high') || 0;
+document.getElementById('best').innerText = best;
+
+function fillGrid() {
+  for(let r=0; r<6; r++) {
+    for(let c=0; c<6; c++) {
+      if(!grid[r][c]) grid[r][c] = emojis[Math.floor(Math.random() * emojis.length)];
+    }
+  }
+}
+
+function render() {
+  let gridEl = document.getElementById('grid');
+  gridEl.innerHTML = '';
+  for(let r=0; r<6; r++) {
+    for(let c=0; c<6; c++) {
+      let div = document.createElement('div');
+      div.className = 'gem';
+      div.innerText = grid[r][c];
+      div.onclick = () => {
+        score += 50;
+        document.getElementById('score').innerText = score;
+        if(score > best) { best = score; localStorage.setItem('match3_high', best); document.getElementById('best').innerText = best; }
+        grid[r][c] = emojis[Math.floor(Math.random() * emojis.length)];
+        render();
+      };
+      gridEl.appendChild(div);
+    }
+  }
+}
+
+fillGrid(); render();
+</script>
+</body>
+</html>

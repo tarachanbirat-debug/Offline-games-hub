@@ -3,8 +3,10 @@ package com.example.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,12 +32,25 @@ fun SettingsScreen(
   soundEngine: VaultSoundEngine,
   hapticEngine: VaultHapticEngine,
   games: List<GameItem>,
+  currentThemeId: String,
+  onThemeChanged: (String) -> Unit,
   onOpenWelcome: () -> Unit = {},
   modifier: Modifier = Modifier
 ) {
   val context = androidx.compose.ui.platform.LocalContext.current
   var soundEnabled by remember { mutableStateOf(repository.getSoundEnabled()) }
   var hapticsEnabled by remember { mutableStateOf(repository.getHapticsEnabled()) }
+  var selectedCategoryFilter by remember { mutableStateOf("All") }
+  var searchQuery by remember { mutableStateOf("") }
+
+  val categories = listOf("All", "Pop & Modern", "Classic Retro", "Neon & Cyber", "Mood & Performance")
+  val filteredPresets = remember(selectedCategoryFilter, searchQuery) {
+    VaultThemeManager.presets.filter { preset ->
+      val matchesCategory = selectedCategoryFilter == "All" || preset.category == selectedCategoryFilter
+      val matchesSearch = searchQuery.isBlank() || preset.name.contains(searchQuery, ignoreCase = true)
+      matchesCategory && matchesSearch
+    }
+  }
 
   LazyColumn(
     modifier = modifier
@@ -137,6 +152,145 @@ fun SettingsScreen(
             colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = CandyWatermelon),
             modifier = Modifier.testTag("settings_haptic_switch")
           )
+        }
+      }
+    }
+
+    // 50+ Themes & Mood Customizer Section
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(22.dp))
+          .background(VaultSurfaceElevated)
+          .border(1.dp, VaultBorder, RoundedCornerShape(22.dp))
+          .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+      ) {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Column {
+            Text("50+ THEMES & MOODS", color = CandyLemon, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("Custom Arcade Vibe", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
+          }
+          Badge(containerColor = CandyMint) {
+            Text("50+ Presets", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 9.sp)
+          }
+        }
+
+        // Category Filter Chips
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          categories.forEach { cat ->
+            val isSelected = selectedCategoryFilter == cat
+            FilterChip(
+              selected = isSelected,
+              onClick = {
+                soundEngine.playPop()
+                hapticEngine.vibrateTap()
+                selectedCategoryFilter = cat
+              },
+              label = { Text(cat, fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+              colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = CandyCyan,
+                selectedLabelColor = Color.Black,
+                containerColor = VaultSurface,
+                labelColor = VaultTextSecondary
+              )
+            )
+          }
+        }
+
+        // Search Field for Themes
+        OutlinedTextField(
+          value = searchQuery,
+          onValueChange = { searchQuery = it },
+          placeholder = { Text("Search themes (e.g. Retro, Cyber, Zen)...", fontSize = 12.sp, color = VaultTextMuted) },
+          leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = CandyCyan) },
+          singleLine = true,
+          shape = RoundedCornerShape(12.dp),
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = CandyCyan,
+            unfocusedBorderColor = VaultBorder,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = CandyCyan
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        // Themes Grid / List (Showing filtered presets)
+        Column(
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          filteredPresets.take(20).forEach { preset ->
+            val isCurrent = preset.id == currentThemeId
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(if (isCurrent) preset.primaryAccent.copy(alpha = 0.2f) else VaultSurface)
+                .border(
+                  width = if (isCurrent) 2.dp else 1.dp,
+                  color = if (isCurrent) preset.primaryAccent else VaultBorder,
+                  shape = RoundedCornerShape(14.dp)
+                )
+                .clickable {
+                  soundEngine.playSnap()
+                  hapticEngine.vibrateSuccess()
+                  repository.setSelectedThemeId(preset.id)
+                  onThemeChanged(preset.id)
+                }
+                .padding(12.dp),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f)
+              ) {
+                // Color swatches indicator
+                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                  Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(preset.primaryAccent))
+                  Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(preset.secondaryAccent))
+                  Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(preset.backgroundColor))
+                }
+                Column {
+                  Text(
+                    text = preset.name,
+                    color = if (isCurrent) Color.White else VaultTextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                  )
+                  Text(
+                    text = preset.category,
+                    color = preset.primaryAccent,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold
+                  )
+                }
+              }
+
+              if (isCurrent) {
+                Badge(containerColor = preset.primaryAccent) {
+                  Text("ACTIVE", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                }
+              } else {
+                Text("Select", color = VaultTextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+              }
+            }
+          }
         }
       }
     }

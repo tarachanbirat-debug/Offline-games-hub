@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Space Blaster 2D</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 12px; font-size: 18px; font-weight: bold; background: #1E293B; }
+canvas { display: block; margin: 10px auto; background: #050811; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+.controls { display: flex; justify-content: center; gap: 20px; margin-top: 10px; }
+button { background: #FF6B6B; color: #fff; border: none; font-size: 18px; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="360" height="400"></canvas>
+<div class="controls">
+  <button onclick="playerX = Math.max(20, playerX - 30)">◀ MOVE</button>
+  <button onclick="shoot()" style="background:#10B981;">FIRE 🚀</button>
+  <button onclick="playerX = Math.min(340, playerX + 30)">MOVE ▶</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let playerX = 180, bullets = [], enemies = [], score = 0;
+let best = localStorage.getItem('space_high') || 0;
+document.getElementById('best').innerText = best;
+let enemySpeed = 2;
+
+function shoot() {
+  bullets.push({ x: playerX, y: 330 });
+}
+
+setInterval(() => {
+  enemies.push({ x: Math.random() * 300 + 30, y: -20, speed: enemySpeed });
+}, 1000);
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  enemySpeed += 0.0005;
+
+  // Bullets
+  ctx.fillStyle = '#38BDF8';
+  bullets.forEach((b, index) => {
+    b.y -= 7;
+    ctx.fillRect(b.x - 3, b.y, 6, 14);
+    if(b.y < 0) bullets.splice(index, 1);
+  });
+
+  // Enemies
+  ctx.fillStyle = '#FF6B6B';
+  enemies.forEach((e, eIndex) => {
+    e.y += e.speed;
+    ctx.fillRect(e.x - 16, e.y - 16, 32, 32);
+
+    bullets.forEach((b, bIndex) => {
+      if(Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) {
+        score += 100;
+        document.getElementById('score').innerText = score;
+        if(score > best) { best = score; localStorage.setItem('space_high', best); document.getElementById('best').innerText = best; }
+        enemies.splice(eIndex, 1);
+        bullets.splice(bIndex, 1);
+      }
+    });
+
+    if(e.y > canvas.height) {
+      alert('Game Over! Score: ' + score);
+      score = 0; enemies = []; enemySpeed = 2;
+      document.getElementById('score').innerText = score;
+    }
+  });
+
+  // Player
+  ctx.fillStyle = '#10B981';
+  ctx.beginPath();
+  ctx.moveTo(playerX, 340);
+  ctx.lineTo(playerX - 22, 380);
+  ctx.lineTo(playerX + 22, 380);
+  ctx.closePath();
+  ctx.fill();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

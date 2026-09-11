@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Brick Breaker Pro</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 12px; font-size: 18px; font-weight: bold; background: #1E293B; }
+canvas { display: block; margin: 15px auto; background: #1E293B; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+.controls { display: flex; justify-content: center; gap: 40px; margin-top: 10px; }
+button { background: #38BDF8; color: #000; border: none; font-size: 20px; padding: 12px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="340" height="420"></canvas>
+<div class="controls">
+  <button onclick="paddleX = Math.max(30, paddleX - 40)">◀</button>
+  <button onclick="paddleX = Math.min(310, paddleX + 40)">▶</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let paddleX = 140, ballX = 170, ballY = 200, dx = 3, dy = -3, score = 0;
+let best = localStorage.getItem('breaker_high') || 0;
+document.getElementById('best').innerText = best;
+
+let bricks = [];
+for(let r=0; r<4; r++) {
+  for(let c=0; c<5; c++) {
+    bricks.push({ x: c * 62 + 20, y: r * 25 + 30, w: 56, h: 18, alive: true });
+  }
+}
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ballX += dx; ballY += dy;
+  if(ballX < 10 || ballX > canvas.width - 10) dx = -dx;
+  if(ballY < 10) dy = -dy;
+
+  if(ballY > 380 && ballX > paddleX - 35 && ballX < paddleX + 35) {
+    dy = -dy;
+    dx *= 1.02; dy *= 1.02; // Progressive difficulty
+  }
+
+  if(ballY > canvas.height) {
+    if(score > best) { best = score; localStorage.setItem('breaker_high', best); }
+    alert('Game Over! Score: ' + score);
+    score = 0; ballX = 170; ballY = 200; dx = 3; dy = -3;
+    bricks.forEach(b => b.alive = true);
+    document.getElementById('best').innerText = best;
+  }
+
+  bricks.forEach(b => {
+    if(b.alive && ballX > b.x && ballX < b.x + b.w && ballY > b.y && ballY < b.y + b.h) {
+      b.alive = false; dy = -dy;
+      score += 20;
+      document.getElementById('score').innerText = score;
+    }
+  });
+
+  // Draw Bricks
+  bricks.forEach(b => {
+    if(b.alive) {
+      ctx.fillStyle = '#10B981';
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+    }
+  });
+
+  // Paddle
+  ctx.fillStyle = '#38BDF8';
+  ctx.fillRect(paddleX - 35, 390, 70, 12);
+
+  // Ball
+  ctx.fillStyle = '#FFF';
+  ctx.beginPath(); ctx.arc(ballX, ballY, 8, 0, Math.PI*2); ctx.fill();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

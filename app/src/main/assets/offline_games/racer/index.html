@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Retro Racer</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 12px; font-size: 18px; font-weight: bold; background: #1E293B; }
+canvas { display: block; margin: 15px auto; background: #1E293B; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+.controls { display: flex; justify-content: center; gap: 30px; margin-top: 10px; }
+button { background: #F59E0B; color: #000; border: none; font-size: 20px; padding: 15px 35px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="320" height="420"></canvas>
+<div class="controls">
+  <button onclick="carX = Math.max(60, carX - 70)">◀</button>
+  <button onclick="carX = Math.min(260, carX + 70)">▶</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let carX = 160, obstacles = [], score = 0;
+let best = localStorage.getItem('racer_high') || 0;
+document.getElementById('best').innerText = best;
+let roadSpeed = 5;
+
+setInterval(() => {
+  let lanes = [60, 130, 200, 260];
+  obstacles.push({ x: lanes[Math.floor(Math.random()*lanes.length)], y: -50 });
+}, 1200);
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  roadSpeed += 0.002;
+  score += 1;
+  document.getElementById('score').innerText = score;
+
+  // Road lines
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 4;
+  ctx.setLineDash([20, 20]);
+  ctx.beginPath(); ctx.moveTo(160, 0); ctx.lineTo(160, canvas.height); ctx.stroke();
+  ctx.setLineDash([]);
+
+  obstacles.forEach((obs, index) => {
+    obs.y += roadSpeed;
+    ctx.fillStyle = '#EF4444';
+    ctx.fillRect(obs.x - 20, obs.y - 30, 40, 60);
+
+    if (obs.y > 320 && obs.y < 400 && Math.abs(obs.x - carX) < 30) {
+      if (score > best) { best = score; localStorage.setItem('racer_high', best); }
+      alert('Crash! Score: ' + score);
+      score = 0; roadSpeed = 5; obstacles = [];
+      document.getElementById('best').innerText = best;
+    }
+    if (obs.y > canvas.height) obstacles.splice(index, 1);
+  });
+
+  // Player Car
+  ctx.fillStyle = '#38BDF8';
+  ctx.fillRect(carX - 20, 340, 40, 60);
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

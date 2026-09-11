@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Doodle Bounce</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: sans-serif; color: #fff; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 12px; font-size: 18px; font-weight: bold; background: #1E293B; }
+canvas { display: block; margin: 15px auto; background: #1E293B; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+.controls { display: flex; justify-content: center; gap: 40px; margin-top: 10px; }
+button { background: #10B981; color: #000; border: none; font-size: 20px; padding: 15px 35px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="320" height="420"></canvas>
+<div class="controls">
+  <button onclick="playerX = Math.max(20, playerX - 35)">◀</button>
+  <button onclick="playerX = Math.min(300, playerX + 35)">▶</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let playerX = 160, playerY = 200, vy = 0, score = 0;
+let best = localStorage.getItem('bounce_high') || 0;
+document.getElementById('best').innerText = best;
+
+let platforms = [
+  {x: 140, y: 350},
+  {x: 80, y: 260},
+  {x: 200, y: 170},
+  {x: 120, y: 80}
+];
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  vy += 0.4;
+  playerY += vy;
+
+  platforms.forEach(p => {
+    if(vy > 0 && playerY + 15 >= p.y && playerY + 15 <= p.y + 12 && playerX >= p.x - 20 && playerX <= p.x + 60) {
+      vy = -10;
+      score += 10;
+      document.getElementById('score').innerText = score;
+      if(score > best) { best = score; localStorage.setItem('bounce_high', best); document.getElementById('best').innerText = best; }
+    }
+  });
+
+  if(playerY < 200) {
+    let diff = 200 - playerY;
+    playerY = 200;
+    platforms.forEach(p => {
+      p.y += diff;
+      if(p.y > canvas.height) {
+        p.y = 0;
+        p.x = Math.random() * 240 + 20;
+      }
+    });
+  }
+
+  if(playerY > canvas.height) {
+    alert('Game Over! Score: ' + score);
+    score = 0; playerY = 200; vy = 0;
+    platforms = [{x: 140, y: 350}, {x: 80, y: 260}, {x: 200, y: 170}, {x: 120, y: 80}];
+    document.getElementById('best').innerText = best;
+  }
+
+  // Draw Platforms
+  ctx.fillStyle = '#10B981';
+  platforms.forEach(p => ctx.fillRect(p.x, p.y, 60, 12));
+
+  // Player
+  ctx.fillStyle = '#38BDF8';
+  ctx.beginPath(); ctx.arc(playerX, playerY, 15, 0, Math.PI*2); ctx.fill();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+</body>
+</html>

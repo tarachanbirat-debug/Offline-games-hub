@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Nokia Snake '97</title>
+<style>
+body { background: #0B0F19; margin: 0; overflow: hidden; font-family: monospace; color: #10B981; text-align: center; }
+#ui { display: flex; justify-content: space-around; padding: 15px; font-size: 18px; font-weight: bold; background: #1E293B; color: #FFF; }
+canvas { display: block; margin: 20px auto; background: #0F2018; border: 4px solid #10B981; box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+.controls { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; justify-content: center; margin-top: 15px; }
+button { background: #1E293B; color: #10B981; border: 2px solid #10B981; font-size: 22px; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+button:active { background: #10B981; color: #000; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>SCORE: <span id="score">0</span></div>
+  <div>BEST: <span id="best">0</span></div>
+</div>
+<canvas id="canvas" width="320" height="320"></canvas>
+<div class="controls">
+  <div></div><button onclick="dir(0,-1)">▲</button><div></div>
+  <button onclick="dir(-1,0)">◀</button><button onclick="dir(0,1)">▼</button><button onclick="dir(1,0)">▶</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const sz = 16;
+let snake = [{x:10, y:10}];
+let food = {x:5, y:5};
+let dx = 1, dy = 0;
+let score = 0;
+let best = localStorage.getItem('snake_high') || 0;
+document.getElementById('best').innerText = best;
+let speed = 120;
+let interval;
+
+function spawnFood() {
+  food = { x: Math.floor(Math.random()*(canvas.width/sz)), y: Math.floor(Math.random()*(canvas.height/sz)) };
+}
+
+function dir(x, y) {
+  if (dx === -x && dy === -y) return;
+  dx = x; dy = y;
+}
+
+function gameLoop() {
+  let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+  if (head.x < 0 || head.x >= canvas.width/sz || head.y < 0 || head.y >= canvas.height/sz || snake.some(s => s.x === head.x && s.y === head.y)) {
+    if (score > best) { best = score; localStorage.setItem('snake_high', best); }
+    alert('Game Over! Score: ' + score);
+    snake = [{x:10, y:10}]; score = 0; dx = 1; dy = 0; speed = 120;
+    document.getElementById('score').innerText = score;
+    clearInterval(interval);
+    interval = setInterval(gameLoop, speed);
+    spawnFood();
+    return;
+  }
+  snake.unshift(head);
+  if (head.x === food.x && head.y === food.y) {
+    score += 10;
+    document.getElementById('score').innerText = score;
+    spawnFood();
+    if (score % 50 === 0 && speed > 50) {
+      speed -= 10;
+      clearInterval(interval);
+      interval = setInterval(gameLoop, speed);
+    }
+  } else {
+    snake.pop();
+  }
+
+  ctx.fillStyle = '#0F2018';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  
+  ctx.fillStyle = '#EF4444';
+  ctx.fillRect(food.x*sz, food.y*sz, sz-2, sz-2);
+
+  ctx.fillStyle = '#10B981';
+  snake.forEach(s => ctx.fillRect(s.x*sz, s.y*sz, sz-2, sz-2));
+}
+
+spawnFood();
+interval = setInterval(gameLoop, speed);
+</script>
+</body>
+</html>
