@@ -1,17 +1,26 @@
 package com.example.ui.screens
 
 import android.annotation.SuppressLint
+import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +50,9 @@ data class OfflineGameItem(
 @Composable
 fun OfflineVaultScreen() {
     var activeGamePath by remember { mutableStateOf<String?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("ALL") }
+    val view = LocalView.current
 
     val games = remember {
         listOf(
@@ -66,6 +79,16 @@ fun OfflineVaultScreen() {
         )
     }
 
+    val categories = listOf("ALL", "RETRO", "ACTION", "PUZZLE", "ARCADE", "CASUAL", "SPORTS", "RACING", "BOARD")
+
+    val filteredGames = remember(games, searchQuery, selectedCategory) {
+        games.filter { game ->
+            val matchesCategory = selectedCategory == "ALL" || game.category.equals(selectedCategory, ignoreCase = true)
+            val matchesSearch = searchQuery.isBlank() || game.title.contains(searchQuery, ignoreCase = true) || game.category.contains(searchQuery, ignoreCase = true)
+            matchesCategory && matchesSearch
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -80,7 +103,7 @@ fun OfflineVaultScreen() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -92,7 +115,7 @@ fun OfflineVaultScreen() {
                         color = Color.White
                     )
                     Text(
-                        text = "20 AAA Arcade Engines • 60 FPS",
+                        text = "${filteredGames.size} AAA Arcade Engines • 60 FPS",
                         fontSize = 13.sp,
                         color = Color(0xFF10B981),
                         fontWeight = FontWeight.Medium
@@ -114,118 +137,215 @@ fun OfflineVaultScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 2-COLUMN GRID
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+            // GAME SEARCH BAR
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF1E293B),
+                    unfocusedContainerColor = Color(0xFF1E293B),
+                    disabledContainerColor = Color(0xFF1E293B),
+                    focusedBorderColor = Color(0xFF10B981),
+                    unfocusedBorderColor = Color(0xFF334155),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                placeholder = { Text("Search 20 offline games...", color = Color(0xFF94A3B8), fontSize = 14.sp) },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF10B981))
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                            searchQuery = ""
+                        }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear Search", tint = Color(0xFF94A3B8))
+                        }
+                    }
+                },
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // QUICK FILTER CATEGORIES
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(categories) { category ->
+                    val isSelected = selectedCategory == category
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelected) Color(0xFF10B981) else Color(0xFF1E293B),
+                        modifier = Modifier
+                            .height(36.dp)
+                            .clickable {
+                                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                selectedCategory = category
+                            }
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 14.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = category,
+                                color = if (isSelected) Color.Black else Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 2-COLUMN GRID WITH SCORE & FILTER TRANSITIONS
+            AnimatedContent(
+                targetState = filteredGames,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) + slideInVertically(animationSpec = tween(300)) { height -> height / 10 } togetherWith
+                            fadeOut(animationSpec = tween(200))
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f),
-                contentPadding = PaddingValues(bottom = 32.dp)
-            ) {
-                items(games) { game ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(205.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                label = "GameGridTransition"
+            ) { targetGames ->
+                if (targetGames.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(18.dp))
-                        ) {
-                            // Layer 1 & 2 & 3: Hero Banner Area
-                            Box(
+                        Text(
+                            text = "No games found matching \"$searchQuery\"",
+                            color = Color(0xFF94A3B8),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 32.dp)
+                    ) {
+                        items(targetGames, key = { it.id }) { game ->
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(1f)
-                                    .background(Brush.linearGradient(game.bgGradient)),
-                                contentAlignment = Alignment.Center
+                                    .height(205.dp),
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF111827)),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                             ) {
-                                // Layer 2: Glowing Backdrop Disc (Circle shape with 25% white/gold glow)
-                                Box(
+                                Column(
                                     modifier = Modifier
-                                        .size(76.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.15f))
-                                )
-
-                                // Layer 3: Single Iconic 3D Game Emblem (Centered, 50sp)
-                                Text(
-                                    text = game.emblem,
-                                    fontSize = if (game.emblem.length > 2) 28.sp else 50.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White
-                                )
-
-                                // Rating Chip: Top-right corner with glassmorphic pill background
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = Color.Black.copy(alpha = 0.6f),
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(8.dp)
+                                        .fillMaxSize()
+                                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(18.dp))
                                 ) {
-                                    Text(
-                                        text = game.rating,
-                                        color = Color.White,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
-                                }
+                                    // Hero Banner Area
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f)
+                                            .background(Brush.linearGradient(game.bgGradient)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // Glowing Backdrop Disc
+                                        Box(
+                                            modifier = Modifier
+                                                .size(76.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White.copy(alpha = 0.15f))
+                                        )
 
-                                // Category Pill: Top-left corner
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = Color.Black.copy(alpha = 0.6f),
-                                    modifier = Modifier
-                                        .align(Alignment.TopStart)
-                                        .padding(8.dp)
-                                ) {
-                                    Text(
-                                        text = game.category,
-                                        color = Color(0xFF38BDF8),
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
-                                }
-                            }
+                                        // Iconic 3D Game Emblem
+                                        Text(
+                                            text = game.emblem,
+                                            fontSize = if (game.emblem.length > 2) 28.sp else 50.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color.White
+                                        )
 
-                            // Info and Full-width Mint-Green PLAY Button
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp)
-                            ) {
-                                Text(
-                                    text = game.title,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    maxLines = 1
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Button(
-                                    onClick = { activeGamePath = game.assetPath },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(34.dp),
-                                    shape = RoundedCornerShape(10.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    Text(
-                                        text = "PLAY ▶",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color.Black
-                                    )
+                                        // Rating Chip
+                                        Surface(
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = Color.Black.copy(alpha = 0.6f),
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(8.dp)
+                                        ) {
+                                            Text(
+                                                text = game.rating,
+                                                color = Color.White,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+
+                                        // Category Pill
+                                        Surface(
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = Color.Black.copy(alpha = 0.6f),
+                                            modifier = Modifier
+                                                .align(Alignment.TopStart)
+                                                .padding(8.dp)
+                                        ) {
+                                            Text(
+                                                text = game.category,
+                                                color = Color(0xFF38BDF8),
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+
+                                    // Info and Full-width Mint-Green PLAY Button with Haptic Feedback
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp)
+                                    ) {
+                                        Text(
+                                            text = game.title,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            maxLines = 1
+                                        )
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Button(
+                                            onClick = {
+                                                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                                                activeGamePath = game.assetPath
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(34.dp),
+                                            shape = RoundedCornerShape(10.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                                            contentPadding = PaddingValues(0.dp)
+                                        ) {
+                                            Text(
+                                                text = "PLAY ▶",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = Color.Black
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -262,7 +382,10 @@ fun OfflineVaultScreen() {
                     )
                     // Close Button
                     IconButton(
-                        onClick = { activeGamePath = null },
+                        onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                            activeGamePath = null
+                        },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(16.dp)
