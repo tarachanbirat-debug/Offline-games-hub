@@ -9,7 +9,7 @@ data class OfflineGame(
   val description: String,
   val category: String,
   val genre: String,
-  val assetFolder: String,
+  val url: String,
   val emoji: String,
   val accentColor: Color,
   val badgeText: String = "Offline Ready • No Internet",
@@ -17,75 +17,131 @@ data class OfflineGame(
   val rating: Float = 4.9f
 ) {
   val assetUrl: String
-    get() = "file:///android_asset/offline_games/$assetFolder/index.html"
+    get() = url
+  val isLandscape: Boolean
+    get() = orientation.equals("LANDSCAPE", ignoreCase = true)
 }
 
 object OfflineGamesCatalog {
   val games = listOf(
     OfflineGame(
-      id = "hextris",
-      title = "Hextris Neon",
-      description = "Fast-paced hexagon puzzle inspired by Tetris with rotating neon blocks and zero lag.",
-      category = "PUZZLE",
-      genre = "Hex Arcade",
-      assetFolder = "hextris",
-      emoji = "🔷",
-      accentColor = CandyLemon,
+      id = "fruit_ninja",
+      title = "Fruit Ninja",
+      description = "Real blade trail, flying fruits & splash sounds with juicy arcade action.",
+      category = "ACTION",
+      genre = "Blade Action",
+      url = "https://verma-anushka.github.io/Fruit-Ninja/",
+      emoji = "🍉",
+      accentColor = CandyWatermelon,
+      orientation = "LANDSCAPE",
       rating = 4.9f
     ),
     OfflineGame(
       id = "clumsy_bird",
       title = "Clumsy Bird",
-      description = "Flap your wings through obstacle pipes with smooth parallax background and touch physics.",
-      category = "ARCADE",
+      description = "Official melonJS Flappy Bird with full sprites and smooth touch physics.",
+      category = "TAP",
       genre = "Action Flier",
-      assetFolder = "clumsy_bird",
-      emoji = "🐦",
+      url = "https://ellisonleao.github.io/clumsy-bird/",
+      emoji = "🐤",
       accentColor = CandyMint,
+      orientation = "PORTRAIT",
       rating = 4.8f
-    ),
-    OfflineGame(
-      id = "pacman",
-      title = "Retro Pac-Man",
-      description = "Classic arcade maze runner with dots, energizers, ghosts, and chiptune sound synthesis.",
-      category = "ARCADE",
-      genre = "Maze Arcade",
-      assetFolder = "pacman",
-      emoji = "👾",
-      accentColor = CandyWatermelon,
-      rating = 5.0f
     ),
     OfflineGame(
       id = "2048",
       title = "2048 Deluxe",
-      description = "Juicy animated tile merging puzzle with high score save and silky smooth touch swipes.",
+      description = "Gabriele Cirulli's original animated engine with smooth tile merging.",
       category = "PUZZLE",
       genre = "Number Logic",
-      assetFolder = "2048",
-      emoji = "🔢",
+      url = "https://gabrielecirulli.github.io/2048/",
+      emoji = "2048",
       accentColor = CandyCyan,
+      orientation = "PORTRAIT",
       rating = 4.9f
     ),
     OfflineGame(
-      id = "space_shooter",
-      title = "Galaxy Shooter",
-      description = "Vibrant 2D space fighter with particle bursts, laser shooting, and boss waves.",
-      category = "ARCADE",
-      genre = "Space Combat",
-      assetFolder = "space_shooter",
-      emoji = "🚀",
-      accentColor = CandySkyBlue,
-      rating = 4.9f
-    ),
-    OfflineGame(
-      id = "block_puzzle",
-      title = "Block Puzzle Blast",
-      description = "Color block drop mechanics with satisfying line explosions and high score tracker.",
+      id = "hextris",
+      title = "Neon Hextris",
+      description = "Neon hexagon puzzle with synth audio and fast-paced rotation.",
       category = "PUZZLE",
-      genre = "Block Drop",
-      assetFolder = "block_puzzle",
-      emoji = "🟦",
+      genre = "Hex Arcade",
+      url = "https://hextris.github.io/hextris/",
+      emoji = "🔷",
+      accentColor = CandyLemon,
+      orientation = "PORTRAIT",
+      rating = 4.9f
+    ),
+    OfflineGame(
+      id = "pacman",
+      title = "Pac-Man Classic",
+      description = "Canvas maze with retro ghosts, dots, energizers, and audio.",
+      category = "RETRO",
+      genre = "Maze Arcade",
+      url = "https://platzh1rsch.github.io/pacman-canvas/",
+      emoji = "🟡",
       accentColor = CandyGrape,
+      orientation = "LANDSCAPE",
+      rating = 4.9f
+    ),
+    OfflineGame(
+      id = "tower_game",
+      title = "Tower Master",
+      description = "3D isometric block stacking game with precision physics.",
+      category = "SKILL",
+      genre = "Stacking",
+      url = "https://iamkun.github.io/tower_game/",
+      emoji = "🗼",
+      accentColor = CandySkyBlue,
+      orientation = "PORTRAIT",
+      rating = 4.8f
+    ),
+    OfflineGame(
+      id = "snake_game",
+      title = "Snake Game Retro",
+      description = "Classic retro snake game with crisp controls and score tracking.",
+      category = "RETRO",
+      genre = "Retro Arcade",
+      url = "https://eperezcosano.github.io/snake-game/",
+      emoji = "🐍",
+      accentColor = CandyLemon,
+      orientation = "PORTRAIT",
+      rating = 4.9f
+    ),
+    OfflineGame(
+      id = "breakout",
+      title = "Breakout DX-Ball",
+      description = "Canvas brick breaker with paddle physics and power-ups.",
+      category = "ARCADE",
+      genre = "Brick Breaker",
+      url = "https://bmorelli25.github.io/Breakout-Game-JavaScript/",
+      emoji = "🧱",
+      accentColor = CandyWatermelon,
+      orientation = "LANDSCAPE",
+      rating = 4.9f
+    ),
+    OfflineGame(
+      id = "webgl_maze",
+      title = "WebGL Maze 3D",
+      description = "Full 3D first-person labyrinth rendered with WebGL.",
+      category = "ACTION",
+      genre = "3D Maze",
+      url = "https://mrdoob.github.io/three.js/examples/webgl_geometry_cube.html",
+      emoji = "🧊",
+      accentColor = CandyMint,
+      orientation = "LANDSCAPE",
+      rating = 4.9f
+    ),
+    OfflineGame(
+      id = "connect_four",
+      title = "Connect 4 AI",
+      description = "Full board strategy game with a smart bot opponent.",
+      category = "BOARD",
+      genre = "Board Strategy",
+      url = "https://kenrick95.github.io/c4/",
+      emoji = "🔴",
+      accentColor = CandyCyan,
+      orientation = "PORTRAIT",
       rating = 4.8f
     )
   )

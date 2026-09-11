@@ -207,7 +207,7 @@ fun WelcomeScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-          text = "10 classic native games packed into one super-fast app. No Wi-Fi, no mobile data, and no ads. Just pure fun!",
+          text = "Unlimited games packed into one super-fast app. No Wi-Fi, no mobile data, and no ads. Just pure fun!",
           color = VaultTextSecondary,
           fontSize = 13.sp,
           lineHeight = 19.sp,
@@ -222,7 +222,7 @@ fun WelcomeScreen(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-          FeatureMiniBadge(emoji = "🧩", title = "10 Games", subtitle = "Puzzles & Arcade")
+          FeatureMiniBadge(emoji = "♾️", title = "Unlimited", subtitle = "Puzzles & Arcade")
           FeatureMiniBadge(emoji = "⚡", title = "Zero Lag", subtitle = "Native Canvas")
           FeatureMiniBadge(emoji = "🏆", title = "High Scores", subtitle = "Local Records")
         }

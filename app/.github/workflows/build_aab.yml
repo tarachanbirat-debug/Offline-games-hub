@@ -1,14 +1,15 @@
-name: Build Android App (APK & AAB)
+name: Build Android APK and AAB
 
 on:
   push:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK and AAB
+    name: Build APK & AAB (Debug & Release)
     runs-on: ubuntu-latest
 
     steps:
@@ -27,25 +28,37 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Generate Gradle Wrapper
+        run: |
+          gradle wrapper --gradle-version 8.5
+          chmod +x gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Generate Keystore for Release
+        run: |
+          keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass password123 -keypass password123 -dname "CN=Android, O=AIStudio, C=US" || true
 
-      - name: Upload APK Artifact
+      - name: Build Debug & Release APK and AAB
+        run: |
+          ./gradlew assembleDebug assembleRelease bundleDebug bundleRelease
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
+          STORE_PASSWORD: password123
+          KEY_PASSWORD: password123
+
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: game-vault-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: android-apk-artifacts
+          path: |
+            build/outputs/apk/debug/*.apk
+            build/outputs/apk/release/*.apk
           retention-days: 14
 
-      - name: Build App Bundle (AAB)
-        run: ./gradlew bundleDebug
-
-      - name: Upload AAB Artifact
+      - name: Upload AAB Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: game-vault-debug-aab
-          path: app/build/outputs/bundle/debug/*.aab
+          name: android-aab-artifacts
+          path: |
+            build/outputs/bundle/debug/*.aab
+            build/outputs/bundle/release/*.aab
           retention-days: 14

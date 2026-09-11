@@ -169,9 +169,13 @@ private fun GamePlayerScreen(
   var errorMessage by remember { mutableStateOf("") }
   var activeWebView by remember { mutableStateOf<WebView?>(null) }
 
-  // Intercept back button to show the Exit Confirmation Dialog
+  // Intercept back button for web history navigation or exit confirmation
   androidx.activity.compose.BackHandler {
-    showExitDialog = true
+    if (activeWebView?.canGoBack() == true) {
+      activeWebView?.goBack()
+    } else {
+      showExitDialog = true
+    }
   }
 
   Box(
@@ -266,17 +270,16 @@ private fun GamePlayerScreen(
               super.onPageFinished(view, url)
               isLoading = false
 
-              // Inject anti-ad & fullscreen layout clean-up script
+              // Inject anti-ad & universal viewport scaling script
               view?.evaluateJavascript(
                 """
                 (function() {
+                  var css = "html, body { width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background-color: #000000 !important; display: flex !important; align-items: center !important; justify-content: center !important; } canvas, iframe, #game-container, #canvas, .game-canvas, [id*='game'] { max-width: 100vw !important; max-height: 100vh !important; object-fit: contain !important; margin: auto !important; } .download-button, .google-play, [href*='play.google'], [href*='market://'], .adsbygoogle, .ad-banner, #ad-container { display: none !important; }";
                   var style = document.createElement('style');
-                  style.innerHTML = `
-                    .download-button, .google-play, [href*="play.google"], [href*="market://"],
-                    .adsbygoogle, .ad-banner, #ad-container { display: none !important; }
-                    body { margin: 0; padding: 0; overflow: hidden; }
-                  `;
+                  style.type = 'text/css';
+                  style.appendChild(document.createTextNode(css));
                   document.head.appendChild(style);
+                  document.body.style.backgroundColor = '#000000';
                 })();
                 """.trimIndent(),
                 null
@@ -406,6 +409,9 @@ private fun GamePlayerScreen(
     }
 
     // 4. Subtle Floating Top Navigation Controls (Auto-hiding overlay)
+    var isLandscape by remember { mutableStateOf(false) }
+    val activity = context as? androidx.activity.ComponentActivity
+
     Row(
       modifier = Modifier
         .fillMaxWidth()
@@ -429,23 +435,44 @@ private fun GamePlayerScreen(
         )
       }
 
-      // Refresh Button
-      IconButton(
-        onClick = {
-          isLoading = true
-          activeWebView?.reload()
-        },
-        modifier = Modifier
-          .size(40.dp)
-          .clip(CircleShape)
-          .background(Color(0x88000000))
-      ) {
-        Icon(
-          imageVector = Icons.Default.Refresh,
-          contentDescription = "Reload Game",
-          tint = Color.White,
-          modifier = Modifier.size(18.dp)
-        )
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Flip Orientation Button
+        Button(
+          onClick = {
+            isLandscape = !isLandscape
+            activity?.requestedOrientation = if (isLandscape) {
+              android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            } else {
+              android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = Color(0xCC0F172A)),
+          border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.5f)),
+          contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+          shape = RoundedCornerShape(17.dp),
+          modifier = Modifier.height(34.dp)
+        ) {
+          Text("🔄 Flip", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+
+        // Refresh Button
+        IconButton(
+          onClick = {
+            isLoading = true
+            activeWebView?.reload()
+          },
+          modifier = Modifier
+            .size(34.dp)
+            .clip(CircleShape)
+            .background(Color(0x88000000))
+        ) {
+          Icon(
+            imageVector = Icons.Default.Refresh,
+            contentDescription = "Reload Game",
+            tint = Color.White,
+            modifier = Modifier.size(18.dp)
+          )
+        }
       }
     }
 
