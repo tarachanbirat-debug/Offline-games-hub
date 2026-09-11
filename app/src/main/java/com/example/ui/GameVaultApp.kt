@@ -24,8 +24,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.audio.VaultLofiEngine
 import com.example.audio.VaultHapticEngine
 import com.example.audio.VaultSoundEngine
+import com.example.GamePlayerActivity
+import com.example.data.GamePixCatalogRepository
 import com.example.data.GameVaultDatabase
 import com.example.data.GameVaultRepository
 import com.example.discovery.VaultDiscoveryEngine
@@ -43,20 +46,25 @@ import com.example.model.GameItem
 import com.example.ui.components.GameDetailModal
 import com.example.ui.particles.ParticleOverlay
 import com.example.ui.particles.ParticleSystem
+import com.example.ui.screens.CloudArcadeScreen
 import com.example.ui.screens.DiscoveryScreen
+import com.example.ui.screens.DynamicCatalogScreen
 import com.example.ui.screens.GameHubScreen
+import com.example.ui.screens.OfflineVaultHomeScreen
 import com.example.ui.screens.OnlineGamesScreen
+import com.example.ui.screens.RetroVaultScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.WebGameScreen
 import com.example.ui.screens.WelcomeScreen
+import com.example.ui.screens.games.PongScreen
 import com.example.ui.theme.*
 import kotlinx.coroutines.launch
 
 enum class VaultTab(val title: String, val icon: ImageVector) {
-  ARCADE("ARCADE", Icons.Default.Explore),
-  LOCAL("LOCAL GAMES", Icons.Default.SportsEsports),
-  FAVORITES("FAVORITES", Icons.Default.Star),
-  SETTINGS("SETTINGS", Icons.Default.Settings)
+  OFFLINE_VAULT("Offline Vault", Icons.Default.SportsEsports),
+  ONLINE_ARCADE("Online Arcade", Icons.Default.GridView),
+  MEGA_CLOUD_HUB("Mega Cloud Hub", Icons.Default.Cloud),
+  SETTINGS("Settings", Icons.Default.Settings)
 }
 
 @Composable
@@ -66,14 +74,18 @@ fun GameVaultApp() {
 
   val db = remember { GameVaultDatabase.getDatabase(context) }
   val repository = remember { GameVaultRepository(db.gameDao(), context) }
+  val gamePixRepository = remember { GamePixCatalogRepository() }
   val soundEngine = remember { VaultSoundEngine(context) }
   val hapticEngine = remember { VaultHapticEngine(context) }
+  val lofiEngine = remember { VaultLofiEngine(context) }
   val discoveryEngine = remember { VaultDiscoveryEngine() }
   val particleSystem = remember { ParticleSystem() }
 
   // Initialize sound / haptic settings from repo
   LaunchedEffect(Unit) {
-    soundEngine.isMuted = !repository.getSoundEnabled()
+    val soundEnabled = repository.getSoundEnabled()
+    soundEngine.isMuted = !soundEnabled
+    lofiEngine.isMuted = !soundEnabled
     hapticEngine.isMuted = !repository.getHapticsEnabled()
     repository.initializeDefaultGamesIfEmpty()
   }
@@ -81,9 +93,16 @@ fun GameVaultApp() {
   val games by repository.allGames.collectAsState(initial = emptyList())
 
   var showWelcomeScreen by rememberSaveable { mutableStateOf(false) }
-  var currentTab by remember { mutableStateOf(VaultTab.ARCADE) }
+  var currentTab by remember { mutableStateOf(VaultTab.OFFLINE_VAULT) }
   var activeGame by remember { mutableStateOf<GameItem?>(null) }
   var previewGame by remember { mutableStateOf<GameItem?>(null) }
+
+  // Ensure lo-fi stops when leaving composable
+  DisposableEffect(Unit) {
+    onDispose {
+      lofiEngine.stopLofi()
+    }
+  }
 
   fun launchGame(game: GameItem) {
     soundEngine.playSnap()
@@ -91,10 +110,28 @@ fun GameVaultApp() {
     scope.launch {
       repository.recordGamePlay(game.id)
     }
-    activeGame = game
+    val mood = when (game.id) {
+      "highway_racer", "snake", "brick_breaker", "pong" -> VaultLofiEngine.LofiMood.CYBER_SYNTH
+      "tictactoe", "2048", "game_2048", "water_sort", "word_guess", "memory_match" -> VaultLofiEngine.LofiMood.CHILL_BEATS
+      else -> VaultLofiEngine.LofiMood.RETRO_CHILL
+    }
+    lofiEngine.startLofi(mood)
+
+    if (game.entryPoint.isNotBlank() && (game.entryPoint.startsWith("file://") || game.entryPoint.startsWith("http"))) {
+      GamePlayerActivity.launch(
+        context = context,
+        gameId = game.id,
+        title = game.title,
+        url = game.entryPoint,
+        isOffline = game.offlineMode
+      )
+    } else {
+      activeGame = game
+    }
   }
 
   fun closeGame() {
+    lofiEngine.stopLofi()
     soundEngine.playPop()
     hapticEngine.vibrateTap()
     activeGame = null
@@ -255,9 +292,8 @@ fun GameVaultApp() {
               }
             )
           }
-          else -> {
-            // Fallback to Word Guess or Brick Breaker if an unmapped game is tapped
-            WordGuessScreen(
+          "pong" -> {
+            PongScreen(
               soundEngine = soundEngine,
               hapticEngine = hapticEngine,
               particleSystem = particleSystem,
@@ -268,6 +304,32 @@ fun GameVaultApp() {
                 scope.launch { repository.recordGamePlay(game.id, score) }
               }
             )
+          }
+          else -> {
+            if (game.entryPoint.isNotBlank() && (game.entryPoint.startsWith("file://") || game.entryPoint.startsWith("http"))) {
+              LaunchedEffect(game) {
+                GamePlayerActivity.launch(
+                  context = context,
+                  gameId = game.id,
+                  title = game.title,
+                  url = game.entryPoint,
+                  isOffline = game.offlineMode
+                )
+                closeGame()
+              }
+            } else {
+              PongScreen(
+                soundEngine = soundEngine,
+                hapticEngine = hapticEngine,
+                particleSystem = particleSystem,
+                difficulty = game.difficulty,
+                highScore = game.highScore,
+                onBack = { closeGame() },
+                onScoreUpdated = { score ->
+                  scope.launch { repository.recordGamePlay(game.id, score) }
+                }
+              )
+            }
           }
         }
       } else {
@@ -292,50 +354,27 @@ fun GameVaultApp() {
               .padding(innerPadding)
           ) {
             when (currentTab) {
-              VaultTab.ARCADE -> {
-                OnlineGamesScreen(
+              VaultTab.OFFLINE_VAULT -> {
+                OfflineVaultHomeScreen(
                   soundEngine = soundEngine,
                   hapticEngine = hapticEngine,
-                  onBackToHub = { currentTab = VaultTab.LOCAL },
-                  onOpenLocalGames = { currentTab = VaultTab.LOCAL }
+                  onOpenSettings = { currentTab = VaultTab.SETTINGS },
+                  onOpenOnlineArcade = { currentTab = VaultTab.ONLINE_ARCADE }
                 )
               }
-              VaultTab.LOCAL -> {
-                GameHubScreen(
-                  games = games,
+              VaultTab.ONLINE_ARCADE -> {
+                DynamicCatalogScreen(
+                  repository = gamePixRepository,
                   soundEngine = soundEngine,
                   hapticEngine = hapticEngine,
-                  initialCategory = "ALL",
-                  onOpenSettings = { currentTab = VaultTab.SETTINGS },
-                  onOpenOnline = { currentTab = VaultTab.ARCADE },
-                  onGamePlay = { gameToPlay -> launchGame(gameToPlay) },
-                  onGameCardClick = { clickedGame -> previewGame = clickedGame },
-                  onToggleFavorite = { favGame ->
-                    scope.launch {
-                      repository.toggleFavorite(favGame.id, favGame.isFavorite)
-                    }
-                    soundEngine.playTap()
-                    hapticEngine.vibrateTap()
-                  }
+                  onBack = { currentTab = VaultTab.OFFLINE_VAULT }
                 )
               }
-              VaultTab.FAVORITES -> {
-                GameHubScreen(
-                  games = games,
+              VaultTab.MEGA_CLOUD_HUB -> {
+                CloudArcadeScreen(
                   soundEngine = soundEngine,
                   hapticEngine = hapticEngine,
-                  initialCategory = "FAVORITES",
-                  onOpenSettings = { currentTab = VaultTab.SETTINGS },
-                  onOpenOnline = { currentTab = VaultTab.ARCADE },
-                  onGamePlay = { gameToPlay -> launchGame(gameToPlay) },
-                  onGameCardClick = { clickedGame -> previewGame = clickedGame },
-                  onToggleFavorite = { favGame ->
-                    scope.launch {
-                      repository.toggleFavorite(favGame.id, favGame.isFavorite)
-                    }
-                    soundEngine.playTap()
-                    hapticEngine.vibrateTap()
-                  }
+                  onBackToHub = { currentTab = VaultTab.OFFLINE_VAULT }
                 )
               }
               VaultTab.SETTINGS -> {
@@ -409,9 +448,9 @@ private fun VaultBottomNavigation(
     VaultTab.entries.forEach { tab ->
       val isSelected = (currentTab == tab)
       val tintColor = when (tab) {
-        VaultTab.ARCADE -> CandyCyan
-        VaultTab.LOCAL -> CandyMint
-        VaultTab.FAVORITES -> CandyLemon
+        VaultTab.OFFLINE_VAULT -> CandyMint
+        VaultTab.ONLINE_ARCADE -> CandyCyan
+        VaultTab.MEGA_CLOUD_HUB -> CandyLemon
         VaultTab.SETTINGS -> CandySkyBlue
       }
 

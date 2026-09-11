@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Memory Matrix</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #0B0718;
+      color: #FFF;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 16px;
+      overflow: hidden;
+    }
+    #header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .title { font-size: 20px; font-weight: 900; color: #00FFA3; text-shadow: 0 0 10px #00FFA3; }
+    .level { font-size: 14px; color: #FFD600; font-weight: 800; margin-top: 4px; }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(4, 72px);
+      grid-template-rows: repeat(4, 72px);
+      gap: 10px;
+      background: #181230;
+      padding: 14px;
+      border-radius: 20px;
+      border: 2px solid #36295C;
+    }
+    .tile {
+      background: #120D26;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .tile.active {
+      background: #00D2FF;
+      box-shadow: 0 0 16px #00D2FF;
+      transform: scale(0.96);
+    }
+    .tile.correct {
+      background: #00FFA3;
+      box-shadow: 0 0 16px #00FFA3;
+    }
+    .tile.wrong {
+      background: #FF3366;
+      box-shadow: 0 0 16px #FF3366;
+    }
+    #hint {
+      margin-top: 24px;
+      color: #A59BC8;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    #start-btn {
+      margin-top: 16px;
+      background: #FF3366;
+      color: #FFF;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div class="title">MEMORY MATRIX</div>
+    <div class="level" id="levelText">LEVEL 1 • MEMORIZE PATTERN</div>
+  </div>
+
+  <div id="grid"></div>
+
+  <div id="hint">Watch the highlighted tiles carefully...</div>
+  <button id="start-btn" onclick="startLevel()">NEXT ROUND</button>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const levelText = document.getElementById('levelText');
+    const hintText = document.getElementById('hint');
+    const startBtn = document.getElementById('start-btn');
+
+    const gridSize = 16;
+    let level = 1;
+    let pattern = [];
+    let playerPicks = [];
+    let canClick = false;
+
+    // Build 16 tiles
+    for (let i = 0; i < gridSize; i++) {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.dataset.index = i;
+      tile.onclick = () => onTileClick(i, tile);
+      grid.appendChild(tile);
+    }
+
+    function startLevel() {
+      startBtn.style.display = 'none';
+      playerPicks = [];
+      canClick = false;
+      levelText.textContent = `LEVEL ${level} • MEMORIZE PATTERN`;
+      hintText.textContent = "Memorize the pattern...";
+
+      // Clear all tiles
+      document.querySelectorAll('.tile').forEach(t => t.className = 'tile');
+
+      // Generate random tiles to remember based on level
+      const count = Math.min(3 + level, 9);
+      pattern = [];
+      while (pattern.length < count) {
+        const rand = Math.floor(Math.random() * gridSize);
+        if (!pattern.includes(rand)) pattern.push(rand);
+      }
+
+      // Flash pattern
+      setTimeout(() => {
+        pattern.forEach(idx => {
+          const t = grid.children[idx];
+          t.classList.add('active');
+        });
+
+        // Hide pattern after 1.2 seconds
+        setTimeout(() => {
+          pattern.forEach(idx => {
+            const t = grid.children[idx];
+            t.classList.remove('active');
+          });
+          canClick = true;
+          hintText.textContent = `Tap all ${pattern.length} memorized tiles!`;
+        }, 1200);
+      }, 500);
+    }
+
+    function onTileClick(idx, tile) {
+      if (!canClick || playerPicks.includes(idx)) return;
+
+      playerPicks.push(idx);
+
+      if (pattern.includes(idx)) {
+        tile.classList.add('correct');
+        if (playerPicks.length === pattern.length) {
+          canClick = false;
+          hintText.textContent = "GREAT JOB! Level Complete 🎉";
+          level++;
+          setTimeout(startLevel, 1000);
+        }
+      } else {
+        tile.classList.add('wrong');
+        canClick = false;
+        hintText.textContent = "MISTAKE! Round Over.";
+        // Show correct pattern
+        pattern.forEach(i => grid.children[i].classList.add('active'));
+        startBtn.textContent = "TRY AGAIN";
+        startBtn.style.display = 'block';
+        level = Math.max(1, level - 1);
+      }
+    }
+
+    startLevel();
+  </script>
+</body>
+</html>

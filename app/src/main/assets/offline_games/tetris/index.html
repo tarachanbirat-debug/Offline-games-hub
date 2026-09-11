@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Tetris Classic</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #0B0718;
+      color: #FFF;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: none;
+      padding: 12px;
+    }
+    #header {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 360px;
+      padding: 8px 14px;
+      background: #181230;
+      border: 1px solid #36295C;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .score-accent { color: #FFD600; font-weight: 900; }
+    .level-accent { color: #00FFA3; font-weight: 900; }
+    #board-wrapper {
+      position: relative;
+      width: 240px;
+      height: 400px;
+      background: #120D26;
+      border: 3px solid #7B2CBF;
+      border-radius: 14px;
+      box-shadow: 0 0 20px rgba(123, 44, 191, 0.4);
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #controls {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 360px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .c-btn {
+      flex: 1;
+      height: 52px;
+      background: #1E1638;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: #00D2FF;
+      cursor: pointer;
+    }
+    .c-btn:active {
+      background: #00D2FF;
+      color: #000;
+      transform: scale(0.95);
+    }
+    .drop-btn { color: #FF3366; }
+    .drop-btn:active { background: #FF3366; color: #FFF; }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div>SCORE: <span id="scoreText" class="score-accent">0</span></div>
+    <div>LINES: <span id="linesText" class="level-accent">0</span></div>
+    <div>LVL: <span id="levelText" class="level-accent">1</span></div>
+  </div>
+
+  <div id="board-wrapper">
+    <canvas id="gameCanvas" width="200" height="400"></canvas>
+  </div>
+
+  <div id="controls">
+    <div class="c-btn" onmousedown="move(-1)" ontouchstart="move(-1)">◀</div>
+    <div class="c-btn" onmousedown="rotate()" ontouchstart="rotate()">↻</div>
+    <div class="c-btn" onmousedown="move(1)" ontouchstart="move(1)">▶</div>
+    <div class="c-btn drop-btn" onmousedown="hardDrop()" ontouchstart="hardDrop()">▼▼</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreText = document.getElementById('scoreText');
+    const linesText = document.getElementById('linesText');
+    const levelText = document.getElementById('levelText');
+
+    let audioCtx = null;
+    function beep(freq, duration = 0.05, type = 'sine') {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e){}
+    }
+
+    const COLS = 10;
+    const ROWS = 20;
+    const BLOCK = 20;
+
+    const SHAPES = [
+      [[1, 1, 1, 1]], // I
+      [[1, 1], [1, 1]], // O
+      [[0, 1, 0], [1, 1, 1]], // T
+      [[1, 0, 0], [1, 1, 1]], // J
+      [[0, 0, 1], [1, 1, 1]], // L
+      [[0, 1, 1], [1, 1, 0]], // S
+      [[1, 1, 0], [0, 1, 1]]  // Z
+    ];
+
+    const COLORS = [
+      '#00D2FF', // Cyan
+      '#FFD600', // Yellow
+      '#A855F7', // Purple
+      '#3B82F6', // Blue
+      '#F97316', // Orange
+      '#10B981', // Green
+      '#EF4444'  // Red
+    ];
+
+    let grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    let score = 0;
+    let lines = 0;
+    let level = 1;
+    let currentPiece = null;
+    let gameOver = false;
+
+    function newPiece() {
+      const idx = Math.floor(Math.random() * SHAPES.length);
+      currentPiece = {
+        shape: SHAPES[idx],
+        color: COLORS[idx],
+        x: Math.floor(COLS / 2) - Math.floor(SHAPES[idx][0].length / 2),
+        y: 0
+      };
+      if (collides(currentPiece.x, currentPiece.y, currentPiece.shape)) {
+        gameOver = true;
+        beep(140, 0.4, 'sawtooth');
+        alert("GAME OVER! Score: " + score);
+        reset();
+      }
+    }
+
+    function reset() {
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      score = 0;
+      lines = 0;
+      level = 1;
+      gameOver = false;
+      scoreText.textContent = score;
+      linesText.textContent = lines;
+      levelText.textContent = level;
+      newPiece();
+    }
+
+    function collides(px, py, shape) {
+      for (let r = 0; r < shape.length; r++) {
+        for (let c = 0; c < shape[r].length; c++) {
+          if (shape[r][c]) {
+            const nx = px + c;
+            const ny = py + r;
+            if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
+            if (ny >= 0 && grid[ny][nx]) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function rotate() {
+      if (!currentPiece) return;
+      const prev = currentPiece.shape;
+      const rotated = prev[0].map((_, i) => prev.map(row => row[i]).reverse());
+      if (!collides(currentPiece.x, currentPiece.y, rotated)) {
+        currentPiece.shape = rotated;
+        beep(400);
+      }
+    }
+
+    function move(dx) {
+      if (!currentPiece) return;
+      if (!collides(currentPiece.x + dx, currentPiece.y, currentPiece.shape)) {
+        currentPiece.x += dx;
+        beep(300);
+      }
+    }
+
+    function drop() {
+      if (!currentPiece || gameOver) return;
+      if (!collides(currentPiece.x, currentPiece.y + 1, currentPiece.shape)) {
+        currentPiece.y++;
+      } else {
+        lock();
+      }
+    }
+
+    function hardDrop() {
+      if (!currentPiece || gameOver) return;
+      while (!collides(currentPiece.x, currentPiece.y + 1, currentPiece.shape)) {
+        currentPiece.y++;
+      }
+      lock();
+      beep(600, 0.1);
+    }
+
+    function lock() {
+      currentPiece.shape.forEach((row, r) => {
+        row.forEach((val, c) => {
+          if (val) {
+            const ny = currentPiece.y + r;
+            const nx = currentPiece.x + c;
+            if (ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
+              grid[ny][nx] = currentPiece.color;
+            }
+          }
+        });
+      });
+
+      // Clear rows
+      let cleared = 0;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (grid[r].every(cell => cell !== 0)) {
+          grid.splice(r, 1);
+          grid.unshift(Array(COLS).fill(0));
+          cleared++;
+          r++;
+        }
+      }
+
+      if (cleared > 0) {
+        lines += cleared;
+        score += cleared * 100 * level;
+        level = Math.floor(lines / 10) + 1;
+        scoreText.textContent = score;
+        linesText.textContent = lines;
+        levelText.textContent = level;
+        beep(800, 0.2, 'triangle');
+      }
+
+      newPiece();
+    }
+
+    function draw() {
+      ctx.fillStyle = '#120D26';
+      ctx.fillRect(0, 0, 200, 400);
+
+      // Draw grid blocks
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c]) {
+            ctx.fillStyle = grid[r][c];
+            ctx.fillRect(c * BLOCK + 1, r * BLOCK + 1, BLOCK - 2, BLOCK - 2);
+          }
+        }
+      }
+
+      // Draw current piece
+      if (currentPiece) {
+        ctx.fillStyle = currentPiece.color;
+        currentPiece.shape.forEach((row, r) => {
+          row.forEach((val, c) => {
+            if (val) {
+              const x = (currentPiece.x + c) * BLOCK;
+              const y = (currentPiece.y + r) * BLOCK;
+              ctx.fillRect(x + 1, y + 1, BLOCK - 2, BLOCK - 2);
+            }
+          });
+        });
+      }
+    }
+
+    let lastTick = 0;
+    function loop(time = 0) {
+      if (time - lastTick > Math.max(150, 600 - (level - 1) * 45)) {
+        drop();
+        lastTick = time;
+      }
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    reset();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

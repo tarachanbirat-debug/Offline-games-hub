@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Cyber Pong</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-touch-callout: none; user-select: none; }
+    body {
+      background: #0B0718;
+      color: #FFF;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #hud {
+      display: flex;
+      justify-content: space-between;
+      width: 92%;
+      max-width: 480px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+    .score-badge { font-size: 20px; font-weight: 900; }
+    .player-score { color: #00D2FF; text-shadow: 0 0 10px #00D2FF; }
+    .ai-score { color: #FF3366; text-shadow: 0 0 10px #FF3366; }
+    #canvas-container {
+      position: relative;
+      width: 92%;
+      max-width: 480px;
+      flex: 1;
+      max-height: 75vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      background: #120D26;
+      border: 2px solid #36295C;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 40px rgba(0, 210, 255, 0.05);
+      width: 100%;
+      height: 100%;
+    }
+    #hint {
+      color: #A59BC8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-top: 8px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div class="score-badge player-score">YOU: <span id="playerScore">0</span></div>
+    <div style="color: #FFD600; font-weight: 800; font-size: 14px; align-self: center;">NEON PONG 60FPS</div>
+    <div class="score-badge ai-score">AI: <span id="aiScore">0</span></div>
+  </div>
+
+  <div id="canvas-container">
+    <canvas id="pongCanvas"></canvas>
+  </div>
+  <div id="hint">Drag left/right to move your paddle</div>
+
+  <script>
+    const canvas = document.getElementById('pongCanvas');
+    const ctx = canvas.getContext('2d');
+    const playerScoreEl = document.getElementById('playerScore');
+    const aiScoreEl = document.getElementById('aiScore');
+
+    let width = 360;
+    let height = 600;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      width = rect.width;
+      height = rect.height;
+    }
+    window.addEventListener('resize', resize);
+    setTimeout(resize, 50);
+
+    const paddleWidth = 80;
+    const paddleHeight = 12;
+
+    let playerX = (width - paddleWidth) / 2;
+    let aiX = (width - paddleWidth) / 2;
+
+    let ballX = width / 2;
+    let ballY = height / 2;
+    let ballSpeed = 4.5;
+    let ballVX = 3;
+    let ballVY = 4;
+    const ballRadius = 8;
+
+    let playerScore = 0;
+    let aiScore = 0;
+
+    // Web Audio Synthesizer for instant game sounds
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playBeep(freq, type = 'sine', duration = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    function resetBall(winner) {
+      ballX = width / 2;
+      ballY = height / 2;
+      ballVY = (winner === 'player') ? -4 : 4;
+      ballVX = (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 2);
+      playBeep(220, 'triangle', 0.2);
+    }
+
+    function handleTouch(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const touchX = clientX - rect.left;
+      playerX = Math.max(0, Math.min(width - paddleWidth, touchX - paddleWidth / 2));
+    }
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) handleTouch(e.touches[0].clientX);
+    }, { passive: false });
+
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) handleTouch(e.touches[0].clientX);
+    }, { passive: false });
+
+    window.addEventListener('mousemove', (e) => {
+      handleTouch(e.clientX);
+    });
+
+    function update() {
+      ballX += ballVX;
+      ballY += ballVY;
+
+      // Wall bounce
+      if (ballX - ballRadius <= 0) {
+        ballX = ballRadius;
+        ballVX = -ballVX;
+        playBeep(440);
+      } else if (ballX + ballRadius >= width) {
+        ballX = width - ballRadius;
+        ballVX = -ballVX;
+        playBeep(440);
+      }
+
+      // Player Paddle Collision (Bottom)
+      const playerY = height - 30;
+      if (ballY + ballRadius >= playerY && ballY - ballRadius <= playerY + paddleHeight) {
+        if (ballX >= playerX && ballX <= playerX + paddleWidth) {
+          ballVY = -Math.abs(ballVY) * 1.05;
+          const hitPos = (ballX - (playerX + paddleWidth / 2)) / (paddleWidth / 2);
+          ballVX = hitPos * 5;
+          playBeep(580);
+        }
+      }
+
+      // AI Paddle Collision (Top)
+      const aiY = 20;
+      if (ballY - ballRadius <= aiY + paddleHeight && ballY + ballRadius >= aiY) {
+        if (ballX >= aiX && ballX <= aiX + paddleWidth) {
+          ballVY = Math.abs(ballVY) * 1.05;
+          const hitPos = (ballX - (aiX + paddleWidth / 2)) / (paddleWidth / 2);
+          ballVX = hitPos * 5;
+          playBeep(380);
+        }
+      }
+
+      // AI Movement Logic
+      const aiCenter = aiX + paddleWidth / 2;
+      const targetX = ballX + (Math.sin(Date.now() / 200) * 15);
+      if (aiCenter < targetX - 6) {
+        aiX += 3.8;
+      } else if (aiCenter > targetX + 6) {
+        aiX -= 3.8;
+      }
+      aiX = Math.max(0, Math.min(width - paddleWidth, aiX));
+
+      // Out of bounds
+      if (ballY > height) {
+        aiScore++;
+        aiScoreEl.textContent = aiScore;
+        resetBall('ai');
+      } else if (ballY < 0) {
+        playerScore++;
+        playerScoreEl.textContent = playerScore;
+        resetBall('player');
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Center court dashed line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(0, height / 2);
+      ctx.lineTo(width, height / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Player Paddle (Cyan)
+      ctx.fillStyle = '#00D2FF';
+      ctx.shadowColor = '#00D2FF';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.roundRect(playerX, height - 30, paddleWidth, paddleHeight, 6);
+      ctx.fill();
+
+      // AI Paddle (Magenta)
+      ctx.fillStyle = '#FF3366';
+      ctx.shadowColor = '#FF3366';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.roundRect(aiX, 20, paddleWidth, paddleHeight, 6);
+      ctx.fill();
+
+      // Ball (Glowing Gold)
+      ctx.fillStyle = '#FFD600';
+      ctx.shadowColor = '#FFD600';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

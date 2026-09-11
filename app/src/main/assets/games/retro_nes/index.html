@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>8-Bit Retro NES Classics</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #000;
+      color: #FFF;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: none;
+    }
+    /* CRT Scanline Effect */
+    #screen-frame {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      aspect-ratio: 4/3;
+      margin-top: 10px;
+      background: #111;
+      border: 6px solid #333;
+      border-radius: 14px;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+      overflow: hidden;
+    }
+    #screen-frame::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+    /* NES Virtual Controller */
+    #controller {
+      width: 100%;
+      max-width: 440px;
+      background: #222;
+      border-radius: 20px 20px 0 0;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 4px solid #444;
+    }
+    /* D-PAD */
+    #dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 42px);
+      grid-template-rows: repeat(3, 42px);
+    }
+    .d-btn {
+      background: #111;
+      border: 1px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #888;
+    }
+    .d-btn:active { background: #555; color: #FFF; }
+    .d-up { border-radius: 8px 8px 0 0; }
+    .d-down { border-radius: 0 0 8px 8px; }
+    .d-left { border-radius: 8px 0 0 8px; }
+    .d-right { border-radius: 0 8px 8px 0; }
+    .d-mid { background: #111; }
+
+    /* Action Buttons (A & B) */
+    #action-btns {
+      display: flex;
+      gap: 16px;
+      transform: rotate(-15deg);
+    }
+    .action-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #C41E3A;
+      color: #FFF;
+      font-weight: 900;
+      font-size: 18px;
+      border: 3px solid #771224;
+      box-shadow: 0 4px #440011;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .action-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px #440011;
+      background: #E63946;
+    }
+    #top-hud {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 440px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #00FF66;
+    }
+  </style>
+</head>
+<body>
+  <div id="top-hud">
+    <span>NES EMULATOR 8-BIT</span>
+    <span id="scoreText">SCORE: 00000</span>
+  </div>
+
+  <div id="screen-frame">
+    <canvas id="nesCanvas" width="256" height="224"></canvas>
+  </div>
+
+  <div id="controller">
+    <!-- Virtual D-Pad -->
+    <div id="dpad">
+      <div></div>
+      <div class="d-btn d-up" onmousedown="pressKey('up')" ontouchstart="pressKey('up')">▲</div>
+      <div></div>
+      <div class="d-btn d-left" onmousedown="pressKey('left')" ontouchstart="pressKey('left')">◀</div>
+      <div class="d-btn d-mid"></div>
+      <div class="d-btn d-right" onmousedown="pressKey('right')" ontouchstart="pressKey('right')">▶</div>
+      <div></div>
+      <div class="d-btn d-down" onmousedown="pressKey('down')" ontouchstart="pressKey('down')">▼</div>
+      <div></div>
+    </div>
+
+    <!-- NES Action Buttons -->
+    <div id="action-btns">
+      <div class="action-btn" onmousedown="pressKey('b')" ontouchstart="pressKey('b')">B</div>
+      <div class="action-btn" onmousedown="pressKey('a')" ontouchstart="pressKey('a')">A</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('nesCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreText = document.getElementById('scoreText');
+
+    let playerX = 118;
+    let playerY = 180;
+    let bullets = [];
+    let enemies = [];
+    let score = 0;
+    let frame = 0;
+
+    // Chiptune Audio Synth
+    let audioCtx = null;
+    function playBeep(freq, type = 'square', dur = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch(e) {}
+    }
+
+    function pressKey(key) {
+      if (key === 'left') playerX = Math.max(10, playerX - 14);
+      if (key === 'right') playerX = Math.min(230, playerX + 14);
+      if (key === 'a' || key === 'b' || key === 'up') {
+        bullets.push({x: playerX + 8, y: playerY});
+        playBeep(880, 'square', 0.05);
+      }
+    }
+
+    // Touch dragging on screen
+    canvas.addEventListener('touchmove', e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.touches[0].clientX - rect.left) * (256 / rect.width);
+      playerX = Math.max(10, Math.min(230, x - 8));
+    });
+
+    function spawnEnemy() {
+      enemies.push({
+        x: 10 + Math.random() * 220,
+        y: 10,
+        vy: 1.2 + Math.random() * 1.5,
+        alive: true
+      });
+    }
+
+    function update() {
+      frame++;
+      if (frame % 45 === 0) spawnEnemy();
+
+      // Bullets
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        bullets[i].y -= 6;
+        if (bullets[i].y < 0) bullets.splice(i, 1);
+      }
+
+      // Enemies
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i];
+        e.y += e.vy;
+
+        // Check bullet hit
+        for (let j = bullets.length - 1; j >= 0; j--) {
+          const b = bullets[j];
+          if (b.x >= e.x && b.x <= e.x + 16 && b.y >= e.y && b.y <= e.y + 16) {
+            e.alive = false;
+            bullets.splice(j, 1);
+            score += 100;
+            scoreText.textContent = `SCORE: ${score.toString().padStart(5, '0')}`;
+            playBeep(220, 'sawtooth', 0.12);
+            break;
+          }
+        }
+
+        if (!e.alive || e.y > 224) {
+          enemies.splice(i, 1);
+        }
+      }
+    }
+
+    function draw() {
+      // 8-Bit Dark Blue Space
+      ctx.fillStyle = '#050518';
+      ctx.fillRect(0, 0, 256, 224);
+
+      // Stars
+      ctx.fillStyle = '#FFF';
+      for (let i = 0; i < 20; i++) {
+        const sx = (i * 37 + frame) % 256;
+        const sy = (i * 49 + frame * 2) % 224;
+        ctx.fillRect(sx, sy, 1, 1);
+      }
+
+      // 8-Bit Pixel Spaceship
+      ctx.fillStyle = '#00FF66';
+      ctx.fillRect(playerX + 6, playerY, 4, 14);
+      ctx.fillRect(playerX + 2, playerY + 6, 12, 6);
+      ctx.fillRect(playerX, playerY + 10, 16, 4);
+
+      // Bullets
+      ctx.fillStyle = '#FFD600';
+      bullets.forEach(b => {
+        ctx.fillRect(b.x - 1, b.y, 2, 6);
+      });
+
+      // 8-Bit Invaders
+      enemies.forEach(e => {
+        ctx.fillStyle = '#FF3366';
+        ctx.fillRect(e.x + 2, e.y, 12, 10);
+        ctx.fillRect(e.x + 4, e.y + 10, 8, 4);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(e.x + 4, e.y + 2, 2, 2);
+        ctx.fillRect(e.x + 10, e.y + 2, 2, 2);
+      });
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

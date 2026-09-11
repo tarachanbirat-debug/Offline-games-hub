@@ -40,6 +40,7 @@ fun GameCardArtwork(
       "memory_match" -> drawMemoryMatchIcon(this)
       "word_guess" -> drawWordGuessIcon(this)
       "dot_box" -> drawDotBoxIcon(this)
+      "pong" -> drawBrickBreakerIcon(this)
       else -> drawGenericArcadeIcon(this)
     }
 

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Tic-Tac-Toe</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #0B0718;
+      color: #FFF;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 16px;
+      overflow: hidden;
+    }
+    #status {
+      font-size: 18px;
+      font-weight: 800;
+      color: #00D2FF;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 12px;
+      background: #181230;
+      padding: 14px;
+      border-radius: 20px;
+      border: 2px solid #36295C;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .cell {
+      background: #120D26;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .cell:active { transform: scale(0.94); }
+    .cell.x { color: #00D2FF; text-shadow: 0 0 15px #00D2FF; }
+    .cell.o { color: #FF3366; text-shadow: 0 0 15px #FF3366; }
+    #mode-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .mode-btn {
+      background: #1E1638;
+      color: #FFF;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .mode-btn.active {
+      background: #FFD600;
+      color: #000;
+      border-color: #FFD600;
+    }
+    #reset-btn {
+      margin-top: 16px;
+      background: #00D2FF;
+      color: #000;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">YOUR TURN (X)</div>
+
+  <div id="board">
+    <div class="cell" onclick="makeMove(0)"></div>
+    <div class="cell" onclick="makeMove(1)"></div>
+    <div class="cell" onclick="makeMove(2)"></div>
+    <div class="cell" onclick="makeMove(3)"></div>
+    <div class="cell" onclick="makeMove(4)"></div>
+    <div class="cell" onclick="makeMove(5)"></div>
+    <div class="cell" onclick="makeMove(6)"></div>
+    <div class="cell" onclick="makeMove(7)"></div>
+    <div class="cell" onclick="makeMove(8)"></div>
+  </div>
+
+  <div id="mode-bar">
+    <button class="mode-btn active" id="btnVsAi" onclick="setMode(true)">VS SMART AI</button>
+    <button class="mode-btn" id="btn2P" onclick="setMode(false)">2 PLAYERS</button>
+  </div>
+
+  <button id="reset-btn" onclick="resetGame()">PLAY AGAIN</button>
+
+  <script>
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let turn = "X";
+    let vsAi = true;
+    let gameOver = false;
+    const statusEl = document.getElementById('status');
+    const cells = document.querySelectorAll('.cell');
+
+    function setMode(ai) {
+      vsAi = ai;
+      document.getElementById('btnVsAi').classList.toggle('active', ai);
+      document.getElementById('btn2P').classList.toggle('active', !ai);
+      resetGame();
+    }
+
+    function checkWinner(b) {
+      const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (let w of wins) {
+        if (b[w[0]] && b[w[0]] === b[w[1]] && b[w[0]] === b[w[2]]) {
+          return b[w[0]];
+        }
+      }
+      if (b.every(c => c !== "")) return "TIE";
+      return null;
+    }
+
+    function makeMove(idx) {
+      if (board[idx] !== "" || gameOver) return;
+
+      board[idx] = turn;
+      render();
+
+      const win = checkWinner(board);
+      if (win) {
+        handleEnd(win);
+        return;
+      }
+
+      turn = (turn === "X") ? "O" : "X";
+      statusEl.textContent = vsAi ? "AI IS THINKING..." : `PLAYER ${turn}'S TURN`;
+
+      if (vsAi && turn === "O") {
+        setTimeout(aiMove, 300);
+      }
+    }
+
+    function aiMove() {
+      if (gameOver) return;
+
+      // Smart AI move logic
+      let bestMove = -1;
+      // 1. Can win now?
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === "") {
+          board[i] = "O";
+          if (checkWinner(board) === "O") { bestMove = i; board[i] = ""; break; }
+          board[i] = "";
+        }
+      }
+      // 2. Block X?
+      if (bestMove === -1) {
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === "") {
+            board[i] = "X";
+            if (checkWinner(board) === "X") { bestMove = i; board[i] = ""; break; }
+            board[i] = "";
+          }
+        }
+      }
+      // 3. Center
+      if (bestMove === -1 && board[4] === "") bestMove = 4;
+      // 4. Random available
+      if (bestMove === -1) {
+        const empties = board.map((v, i) => v === "" ? i : -1).filter(i => i !== -1);
+        if (empties.length > 0) bestMove = empties[Math.floor(Math.random() * empties.length)];
+      }
+
+      if (bestMove !== -1) {
+        board[bestMove] = "O";
+        render();
+        const win = checkWinner(board);
+        if (win) {
+          handleEnd(win);
+        } else {
+          turn = "X";
+          statusEl.textContent = "YOUR TURN (X)";
+        }
+      }
+    }
+
+    function handleEnd(win) {
+      gameOver = true;
+      if (win === "TIE") {
+        statusEl.textContent = "IT'S A DRAW!";
+        statusEl.style.color = "#FFD600";
+      } else {
+        statusEl.textContent = `${win} WINS THE MATCH!`;
+        statusEl.style.color = win === "X" ? "#00D2FF" : "#FF3366";
+      }
+    }
+
+    function render() {
+      cells.forEach((cell, i) => {
+        cell.textContent = board[i];
+        cell.className = "cell " + (board[i] ? board[i].toLowerCase() : "");
+      });
+    }
+
+    function resetGame() {
+      board = ["", "", "", "", "", "", "", "", ""];
+      turn = "X";
+      gameOver = false;
+      statusEl.textContent = "YOUR TURN (X)";
+      statusEl.style.color = "#00D2FF";
+      render();
+    }
+  </script>
+</body>
+</html>

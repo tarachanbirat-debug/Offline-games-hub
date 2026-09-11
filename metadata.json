@@ -1,6 +1,6 @@
 {
   "name": "Game Vault",
-  "description": "Premium casual game vault with 10 native offline 3D games and an integrated Online Games Arcade portal (offlinegames.wshareit.com) with 100+ free instant games.",
+  "description": "Definitive All-in-One Multi-Engine Gaming Suite featuring 10+ offline native & canvas games, dynamic 100+ GamePix catalog feed, single-pane cloud arcade stream, and retro classic vault with anti-redirect guard.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
