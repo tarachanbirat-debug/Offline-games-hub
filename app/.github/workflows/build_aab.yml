@@ -1,4 +1,4 @@
-name: Build Android AAB
+name: Build Android App (APK & AAB)
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build Android App Bundle (AAB)
+    name: Build APK and AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -21,14 +21,31 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-vault-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
       - name: Build App Bundle (AAB)
-        run: gradle :app:bundleDebug
+        run: ./gradlew bundleDebug
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-aab
-          path: app/build/outputs/bundle/debug/app-debug.aab
+          name: game-vault-debug-aab
+          path: app/build/outputs/bundle/debug/*.aab
+          retention-days: 14
