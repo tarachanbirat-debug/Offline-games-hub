@@ -19,6 +19,7 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
 
     val isOnline = NetworkChecker.isOnline(applicationContext)
+    val switchToOffline = intent.getBooleanExtra("extra_switch_to_offline", false)
 
     // Background WebView Pre-warming for instant load (Zero Buffering)
     try {
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
     setContent {
       GameVaultTheme {
-        GameVaultApp(initialIsOnline = isOnline)
+        GameVaultApp(initialIsOnline = isOnline, switchToOffline = switchToOffline)
       }
     }
   }

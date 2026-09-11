@@ -121,7 +121,7 @@ private fun VaultBottomNavigation(
 }
 
 @Composable
-fun GameVaultApp(initialIsOnline: Boolean = true) {
+fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = false) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
 
@@ -145,7 +145,7 @@ fun GameVaultApp(initialIsOnline: Boolean = true) {
 
   var selectedThemeId by remember { mutableStateOf(repository.getSelectedThemeId()) }
   var showSplash by rememberSaveable { mutableStateOf(true) }
-  var currentTab by remember { mutableStateOf(if (initialIsOnline) VaultTab.CLOUD_ARCADE else VaultTab.OFFLINE_VAULT) }
+  var currentTab by remember { mutableStateOf(if (switchToOffline || !initialIsOnline) VaultTab.OFFLINE_VAULT else VaultTab.CLOUD_ARCADE) }
   var activeGame by remember { mutableStateOf<GameItem?>(null) }
   var previewGame by remember { mutableStateOf<GameItem?>(null) }
 

@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -160,6 +161,7 @@ private fun GamePlayerScreen(
   onExitGame: () -> Unit,
   onAttachWebView: (WebView) -> Unit
 ) {
+  val context = LocalContext.current
   var showExitDialog by remember { mutableStateOf(false) }
   var isLoading by remember { mutableStateOf(true) }
   var loadProgress by remember { mutableIntStateOf(0) }
@@ -491,15 +493,31 @@ private fun GamePlayerScreen(
             Spacer(modifier = Modifier.height(24.dp))
             Row(
               modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(12.dp)
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
               OutlinedButton(
                 onClick = { showExitDialog = false },
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
               ) {
-                Text("Keep Playing", fontWeight = FontWeight.Bold)
+                Text("Keep Playing", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+              }
+              Button(
+                onClick = {
+                  showExitDialog = false
+                  val intent = Intent(context, MainActivity::class.java).apply {
+                    putExtra("extra_switch_to_offline", true)
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                  }
+                  context.startActivity(intent)
+                  (context as? ComponentActivity)?.finish()
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00D2FF))
+              ) {
+                Text("Offline", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 11.sp)
               }
               Button(
                 onClick = {
@@ -507,10 +525,10 @@ private fun GamePlayerScreen(
                   onExitGame()
                 },
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF3366))
               ) {
-                Text("Exit Hub", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Exit Hub", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
               }
             }
           }

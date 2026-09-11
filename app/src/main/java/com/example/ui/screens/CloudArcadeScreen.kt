@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import com.example.GamePlayerActivity
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
@@ -137,6 +138,22 @@ fun CloudArcadeScreen() {
                                         url.startsWith("https://play.google.com/") || 
                                         url.startsWith("intent://")) {
                                         return true // Block external hijacking
+                                    }
+
+                                    // Automatically switch to immersive fullscreen GamePlayerActivity when opening a game
+                                    val lower = url.lowercase()
+                                    if (lower.contains("/game/") || lower.contains("/play/") || lower.contains("/g/") || lower.contains("/gameplay") || lower.contains("/room/")) {
+                                        val context = view?.context
+                                        if (context != null) {
+                                            GamePlayerActivity.launch(
+                                                context = context,
+                                                gameId = "cloud_stream",
+                                                title = "Cloud Stream",
+                                                url = url,
+                                                isOffline = false
+                                            )
+                                            return true
+                                        }
                                     }
                                     return false
                                 }
