@@ -7,6 +7,7 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -227,6 +228,20 @@ fun CloudArcadeScreen(
                     }
 
                     webViewClient = object : WebViewClient() {
+                        override fun onRenderProcessGone(
+                            view: WebView?,
+                            detail: RenderProcessGoneDetail?
+                        ): Boolean {
+                            try {
+                                view?.let { wv ->
+                                    (wv.parent as? ViewGroup)?.removeView(wv)
+                                    wv.destroy()
+                                }
+                            } catch (_: Exception) {}
+                            activeWebView = null
+                            return true
+                        }
+
                         override fun shouldOverrideUrlLoading(
                             view: WebView?,
                             request: WebResourceRequest?
@@ -260,6 +275,14 @@ fun CloudArcadeScreen(
                     lastLoadedPortalIndex = selectedPortalIndex
                     webView.loadUrl(activeUrl)
                 }
+            },
+            onRelease = { webView ->
+                try {
+                    webView.stopLoading()
+                    webView.loadUrl("about:blank")
+                    (webView.parent as? ViewGroup)?.removeView(webView)
+                    webView.destroy()
+                } catch (_: Exception) {}
             }
         )
 

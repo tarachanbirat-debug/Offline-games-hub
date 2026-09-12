@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.ConsoleMessage
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -229,6 +230,23 @@ private fun GamePlayerScreen(
           }
 
           webViewClient = object : WebViewClient() {
+            override fun onRenderProcessGone(
+              view: WebView?,
+              detail: RenderProcessGoneDetail?
+            ): Boolean {
+              try {
+                view?.let { wv ->
+                  (wv.parent as? ViewGroup)?.removeView(wv)
+                  wv.destroy()
+                }
+              } catch (_: Exception) {}
+              activeWebView = null
+              hasError = true
+              errorMessage = "Game engine recovered from an unexpected error."
+              isLoading = false
+              return true
+            }
+
             // HARD ANTI-REDIRECT GUARD:
             // Intercept & block external app store pushes, market://, play.google.com, intent://
             override fun shouldOverrideUrlLoading(
@@ -305,6 +323,14 @@ private fun GamePlayerScreen(
           activeWebView = this
           onAttachWebView(this)
         }
+      },
+      onRelease = { view ->
+        try {
+          view.stopLoading()
+          view.loadUrl("about:blank")
+          (view.parent as? ViewGroup)?.removeView(view)
+          view.destroy()
+        } catch (_: Exception) {}
       },
       modifier = Modifier.fillMaxSize()
     )

@@ -1,6 +1,9 @@
 package com.example.ui.screens
 
 import android.annotation.SuppressLint
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -53,6 +56,7 @@ fun WebGameScreen(
       AndroidView(
         factory = { ctx ->
           WebView(ctx).apply {
+            setLayerType(View.LAYER_TYPE_NONE, null)
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = true
@@ -61,6 +65,20 @@ fun WebGameScreen(
 
             webChromeClient = WebChromeClient()
             webViewClient = object : WebViewClient() {
+              override fun onRenderProcessGone(
+                view: WebView?,
+                detail: RenderProcessGoneDetail?
+              ): Boolean {
+                try {
+                  view?.let { wv ->
+                    (wv.parent as? ViewGroup)?.removeView(wv)
+                    wv.destroy()
+                  }
+                } catch (_: Exception) {}
+                isLoading = false
+                return true
+              }
+
               override fun onPageFinished(view: WebView?, url: String?) {
                 isLoading = false
               }
@@ -110,6 +128,14 @@ fun WebGameScreen(
 
             loadDataWithBaseURL("https://gamevault.local", htmlContent, "text/html", "UTF-8", null)
           }
+        },
+        onRelease = { view ->
+          try {
+            view.stopLoading()
+            view.loadUrl("about:blank")
+            (view.parent as? ViewGroup)?.removeView(view)
+            view.destroy()
+          } catch (_: Exception) {}
         },
         modifier = Modifier.fillMaxSize()
       )

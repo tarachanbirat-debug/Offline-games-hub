@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -94,6 +96,7 @@ fun OnlineGamesScreen(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
           )
+          setLayerType(View.LAYER_TYPE_NONE, null)
 
           @Suppress("DEPRECATION")
           settings.apply {
@@ -153,6 +156,20 @@ fun OnlineGamesScreen(
           }, "AndroidBridge")
 
           webViewClient = object : WebViewClient() {
+            override fun onRenderProcessGone(
+              view: WebView?,
+              detail: RenderProcessGoneDetail?
+            ): Boolean {
+              try {
+                view?.let { wv ->
+                  (wv.parent as? ViewGroup)?.removeView(wv)
+                  wv.destroy()
+                }
+              } catch (_: Exception) {}
+              webView = null
+              return true
+            }
+
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
               super.onPageStarted(view, url, favicon)
               isLoading = true
@@ -273,6 +290,14 @@ fun OnlineGamesScreen(
       },
       update = { view ->
         webView = view
+      },
+      onRelease = { view ->
+        try {
+          view.stopLoading()
+          view.loadUrl("about:blank")
+          (view.parent as? ViewGroup)?.removeView(view)
+          view.destroy()
+        } catch (_: Exception) {}
       },
       modifier = Modifier
         .fillMaxSize()
