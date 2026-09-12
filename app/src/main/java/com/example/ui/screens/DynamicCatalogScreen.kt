@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import java.util.Locale
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -415,7 +416,7 @@ private fun CatalogGameCard(
             .padding(horizontal = 6.dp, vertical = 2.dp)
         ) {
           Text(
-            text = "★ ${String.format("%.1f", game.quality ?: 4.9)}",
+            text = "★ ${String.format(Locale.US, "%.1f", game.quality ?: 4.9)}",
             color = VaultGold,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold

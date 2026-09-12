@@ -171,7 +171,7 @@ fun CloudArcadeScreen(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    setLayerType(View.LAYER_TYPE_HARDWARE, null)
+                    setLayerType(View.LAYER_TYPE_NONE, null)
                     setBackgroundColor(android.graphics.Color.BLACK)
 
                     // Essential for 3D game assets, cross-domain scripts, and session saves

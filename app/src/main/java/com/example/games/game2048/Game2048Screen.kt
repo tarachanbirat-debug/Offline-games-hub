@@ -45,7 +45,7 @@ fun Game2048Screen(
   onBack: () -> Unit,
   onScoreUpdated: (Int) -> Unit
 ) {
-  var grid by remember { mutableStateOf(Array(4) { IntArray(4) { 0 } }) }
+  var grid by remember { mutableStateOf(Array(4) { IntArray(4) }) }
   var score by remember { mutableIntStateOf(0) }
   var bestScore by remember { mutableIntStateOf(highScore) }
   var isGameOver by remember { mutableStateOf(false) }
@@ -82,7 +82,7 @@ fun Game2048Screen(
   }
 
   fun restartGame() {
-    val newGrid = Array(4) { IntArray(4) { 0 } }
+    val newGrid = Array(4) { IntArray(4) }
     spawnTile(newGrid, difficulty)
     spawnTile(newGrid, difficulty)
     grid = newGrid
@@ -105,7 +105,7 @@ fun Game2048Screen(
 
     fun slideAndMerge(line: IntArray): Pair<IntArray, Int> {
       val filtered = line.filter { it != 0 }.toIntArray()
-      val result = IntArray(4) { 0 }
+      val result = IntArray(4)
       var targetIdx = 0
       var i = 0
       var linePoints = 0

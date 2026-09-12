@@ -192,8 +192,7 @@ private fun GamePlayerScreen(
             ViewGroup.LayoutParams.MATCH_PARENT
           )
 
-          // Hardware Layer for 60 - 120 FPS
-          setLayerType(View.LAYER_TYPE_HARDWARE, null)
+          setLayerType(View.LAYER_TYPE_NONE, null)
 
           // Required Game Engine WebSettings
           @Suppress("DEPRECATION")
