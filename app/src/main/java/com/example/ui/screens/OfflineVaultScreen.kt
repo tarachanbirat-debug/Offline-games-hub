@@ -49,8 +49,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import coil.compose.AsyncImage
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,13 +72,16 @@ import com.example.ui.components.GameCardArtwork
 data class OfflineGameItem(
     val id: String,
     val title: String,
-    val category: String,
+    val tag: String,
     val isLandscape: Boolean,
+    val thumb: String,
     val url: String,
-    val rating: String,
-    val gradientColors: List<Color>,
-    val iconGlyph: String
-)
+    val rating: String = "4.9 ★",
+    val gradientColors: List<Color> = listOf(Color(0xFF3B82F6), Color(0xFF1D4ED8)),
+    val iconGlyph: String = "🎮"
+) {
+    val category: String get() = tag
+}
 typealias OfflineGame = OfflineGameItem
 
 val GameItemSaver = listSaver<OfflineGameItem?, Any>(
@@ -85,8 +90,9 @@ val GameItemSaver = listSaver<OfflineGameItem?, Any>(
             listOf(
                 item.id,
                 item.title,
-                item.category,
+                item.tag,
                 item.isLandscape,
+                item.thumb,
                 item.url,
                 item.rating,
                 item.gradientColors.map { it.value.toLong() },
@@ -96,17 +102,18 @@ val GameItemSaver = listSaver<OfflineGameItem?, Any>(
     },
     restore = { list ->
         if (list.isNotEmpty()) {
-            val colorsRaw = list[6] as? List<*> ?: emptyList<Long>()
+            val colorsRaw = list[7] as? List<*> ?: emptyList<Long>()
             val colors = colorsRaw.map { Color((it as Number).toLong().toULong()) }
             OfflineGameItem(
                 id = list[0] as String,
                 title = list[1] as String,
-                category = list[2] as String,
+                tag = list[2] as String,
                 isLandscape = list[3] as Boolean,
-                url = list[4] as String,
-                rating = list[5] as String,
+                thumb = list[4] as String,
+                url = list[5] as String,
+                rating = list[6] as String,
                 gradientColors = if (colors.isNotEmpty()) colors else listOf(Color(0xFF3B82F6), Color(0xFF1D4ED8)),
-                iconGlyph = list[7] as String
+                iconGlyph = if (list.size > 8) list[8] as String else "🎮"
             )
         } else null
     }
@@ -152,204 +159,204 @@ fun OfflineVaultScreen(
     val games = remember {
         listOf(
             OfflineGameItem(
-                id = "game_2048",
-                title = "2048 Master",
-                category = "PUZZLE",
+                id = "subway_surf_3d",
+                title = "Subway Surf 3D",
+                tag = "3D RUNNER",
                 isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&q=80",
+                url = "https://ellisonleao.github.io/clumsy-bird/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFFF59E0B), Color(0xFFD97706))
+            ),
+            OfflineGameItem(
+                id = "candy_crush_saga",
+                title = "Candy Crush Saga",
+                tag = "MATCH-3",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?w=400&q=80",
                 url = "https://gabrielecirulli.github.io/2048/",
                 rating = "4.9 ★",
-                gradientColors = listOf(Color(0xFFF59E0B), Color(0xFFD97706)),
-                iconGlyph = "🔢"
+                gradientColors = listOf(Color(0xFFEC4899), Color(0xFFBE185D))
             ),
             OfflineGameItem(
-                id = "hextris_neon",
-                title = "Hextris Neon",
-                category = "ARCADE",
-                isLandscape = false,
-                url = "https://hextris.io",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFFA855F7), Color(0xFF7E22CE)),
-                iconGlyph = "⬡"
-            ),
-            OfflineGameItem(
-                id = "pacman_retro",
-                title = "Pacman Retro",
-                category = "RETRO",
+                id = "moto_hill_extreme",
+                title = "Moto Hill Extreme",
+                tag = "3D RACING",
                 isLandscape = true,
-                url = "https://pacman.platzh1rsch.ch",
+                thumb = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400&q=80",
+                url = "https://eperezcosano.github.io/snake-game/",
                 rating = "4.9 ★",
-                gradientColors = listOf(Color(0xFFFFD200), Color(0xFFF7971E)),
-                iconGlyph = "🟡"
+                gradientColors = listOf(Color(0xFFEF4444), Color(0xFFB91C1C))
             ),
             OfflineGameItem(
-                id = "clumsy_bird",
-                title = "Clumsy Bird",
-                category = "FLYING",
+                id = "knife_hit_master",
+                title = "Knife Hit Master",
+                tag = "ARCADE",
                 isLandscape = false,
-                url = "https://ellisonleao.github.io/clumsy-bird/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF3B82F6), Color(0xFF1D4ED8)),
-                iconGlyph = "🐦"
-            ),
-            OfflineGameItem(
-                id = "tower_stack",
-                title = "Tower Stack 3D",
-                category = "STACK",
-                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=400&q=80",
                 url = "https://iamkun.github.io/tower_game/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF06B6D4), Color(0xFF0E7490)),
-                iconGlyph = "🏙️"
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF06B6D4), Color(0xFF0E7490))
             ),
             OfflineGameItem(
-                id = "fruit_slasher",
-                title = "Fruit Slasher",
-                category = "ACTION",
+                id = "ludo_club_online",
+                title = "Ludo Club Online",
+                tag = "BOARD",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=400&q=80",
+                url = "https://kenrick95.github.io/c4/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF10B981), Color(0xFF047857))
+            ),
+            OfflineGameItem(
+                id = "fruit_ninja_blade",
+                title = "Fruit Ninja Blade",
+                tag = "ACTION",
                 isLandscape = true,
+                thumb = "https://images.unsplash.com/photo-1618897996318-5a901fa6ca71?w=400&q=80",
                 url = "https://iamkun.github.io/fruit-ninja/",
                 rating = "4.9 ★",
-                gradientColors = listOf(Color(0xFF11998E), Color(0xFF38EF7D)),
-                iconGlyph = "🍉"
+                gradientColors = listOf(Color(0xFF11998E), Color(0xFF38EF7D))
             ),
             OfflineGameItem(
-                id = "retro_snake",
-                title = "Retro Snake",
-                category = "CLASSIC",
-                isLandscape = false,
-                url = "https://eperezcosano.github.io/snake-game/",
-                rating = "4.7 ★",
-                gradientColors = listOf(Color(0xFF134E5E), Color(0xFF71B280)),
-                iconGlyph = "🐍"
-            ),
-            OfflineGameItem(
-                id = "breakout_dx",
-                title = "Breakout DX",
-                category = "ARCADE",
-                isLandscape = false,
-                url = "https://bmorelli25.github.io/Breakout-Game-JavaScript/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFFEC4899), Color(0xFFBE185D)),
-                iconGlyph = "🧱"
-            ),
-            OfflineGameItem(
-                id = "canvas_tetris",
-                title = "Canvas Tetris",
-                category = "PUZZLE",
-                isLandscape = false,
-                url = "https://dionyz.github.io/tetris-canvas/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF6366F1), Color(0xFF4338CA)),
-                iconGlyph = "🔲"
-            ),
-            OfflineGameItem(
-                id = "webgl_3d_cube",
-                title = "WebGL 3D Cube",
-                category = "3D",
+                id = "bottle_shoot_3d",
+                title = "Bottle Shoot 3D",
+                tag = "SHOOTER",
                 isLandscape = true,
+                thumb = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80",
+                url = "https://pacman.platzh1rsch.ch",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFFFFD200), Color(0xFFF7971E))
+            ),
+            OfflineGameItem(
+                id = "bubble_shooter_pop",
+                title = "Bubble Shooter Pop",
+                tag = "CASUAL",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80",
+                url = "https://hextris.io",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFFA855F7), Color(0xFF7E22CE))
+            ),
+            OfflineGameItem(
+                id = "eight_ball_billiards",
+                title = "8 Ball Billiards",
+                tag = "SPORTS",
+                isLandscape = true,
+                thumb = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80",
+                url = "https://kenrick95.github.io/c4/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF14B8A6), Color(0xFF0F766E))
+            ),
+            OfflineGameItem(
+                id = "angry_slingshot",
+                title = "Angry Slingshot",
+                tag = "PHYSICS",
+                isLandscape = true,
+                thumb = "https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=80",
+                url = "https://iamkun.github.io/fruit-ninja/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFFFF5E36), Color(0xFFF01445))
+            ),
+            OfflineGameItem(
+                id = "block_puzzle_jewel",
+                title = "Block Puzzle Jewel",
+                tag = "PUZZLE",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&q=80",
+                url = "https://gabrielecirulli.github.io/2048/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF6366F1), Color(0xFF4338CA))
+            ),
+            OfflineGameItem(
+                id = "drift_city_3d",
+                title = "Drift City 3D",
+                tag = "RACING",
+                isLandscape = true,
+                thumb = "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400&q=80",
+                url = "https://iamkun.github.io/tower_game/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF3B82F6), Color(0xFF1D4ED8))
+            ),
+            OfflineGameItem(
+                id = "archery_champion",
+                title = "Archery Champion",
+                tag = "SPORTS",
+                isLandscape = true,
+                thumb = "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=400&q=80",
                 url = "https://threejs.org/examples/webgl_geometry_cube.html",
                 rating = "4.9 ★",
-                gradientColors = listOf(Color(0xFF14B8A6), Color(0xFF0F766E)),
-                iconGlyph = "🌀"
+                gradientColors = listOf(Color(0xFF10B981), Color(0xFF059669))
             ),
             OfflineGameItem(
-                id = "color_tap_blast",
-                title = "Color Tap Blast",
-                category = "REFLEX",
+                id = "temple_runner_3d",
+                title = "Temple Runner 3D",
+                tag = "RUNNER",
                 isLandscape = false,
-                url = "https://hextris.io",
-                rating = "4.7 ★",
-                gradientColors = listOf(Color(0xFFEF4444), Color(0xFFB91C1C)),
-                iconGlyph = "💥"
-            ),
-            OfflineGameItem(
-                id = "connect_4_ai",
-                title = "Connect 4 AI",
-                category = "BOARD",
-                isLandscape = false,
-                url = "https://kenrick95.github.io/c4/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF7928CA), Color(0xFFFF0080)),
-                iconGlyph = "🔴"
-            ),
-            OfflineGameItem(
-                id = "classic_pong",
-                title = "Classic Pong",
-                category = "SPORTS",
-                isLandscape = false,
-                url = "https://bmorelli25.github.io/Breakout-Game-JavaScript/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF10B981), Color(0xFF047857)),
-                iconGlyph = "🏓"
-            ),
-            OfflineGameItem(
-                id = "speed_drift",
-                title = "Speed Drift",
-                category = "RACING",
-                isLandscape = false,
-                url = "https://iamkun.github.io/tower_game/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFFFF5E36), Color(0xFFF01445)),
-                iconGlyph = "🏎️"
-            ),
-            OfflineGameItem(
-                id = "memory_matrix",
-                title = "Memory Matrix",
-                category = "BRAIN",
-                isLandscape = false,
-                url = "https://gabrielecirulli.github.io/2048/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF8B5CF6), Color(0xFF6D28D9)),
-                iconGlyph = "🧠"
-            ),
-            OfflineGameItem(
-                id = "jewel_match",
-                title = "Jewel Match",
-                category = "MATCH-3",
-                isLandscape = false,
-                url = "https://hextris.io",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF00C9FF), Color(0xFF92FE9D)),
-                iconGlyph = "💎"
-            ),
-            OfflineGameItem(
-                id = "mine_sweeper",
-                title = "Mine Sweeper",
-                category = "LOGIC",
-                isLandscape = false,
-                url = "https://gabrielecirulli.github.io/2048/",
-                rating = "4.7 ★",
-                gradientColors = listOf(Color(0xFF64748B), Color(0xFF334155)),
-                iconGlyph = "💣"
-            ),
-            OfflineGameItem(
-                id = "doodle_hopper",
-                title = "Doodle Hopper",
-                category = "JUMP",
-                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80",
                 url = "https://ellisonleao.github.io/clumsy-bird/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFFE65C00), Color(0xFFF9D423)),
-                iconGlyph = "🦘"
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFFEAB308), Color(0xFFCA8A04))
             ),
             OfflineGameItem(
-                id = "glow_tictactoe",
-                title = "Glow Tic-Tac-Toe",
-                category = "CASUAL",
+                id = "watermelon_merge",
+                title = "Watermelon Merge",
+                tag = "MERGE",
                 isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&q=80",
+                url = "https://gabrielecirulli.github.io/2048/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF00C9FF), Color(0xFF92FE9D))
+            ),
+            OfflineGameItem(
+                id = "highway_bike_hero",
+                title = "Highway Bike Hero",
+                tag = "RACING",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=80",
+                url = "https://eperezcosano.github.io/snake-game/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFFF97316), Color(0xFFEA580C))
+            ),
+            OfflineGameItem(
+                id = "cut_the_fruit_3d",
+                title = "Cut The Fruit 3D",
+                tag = "ACTION",
+                isLandscape = true,
+                thumb = "https://images.unsplash.com/photo-1546548970-71785318a17b?w=400&q=80",
+                url = "https://iamkun.github.io/fruit-ninja/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF84CC16), Color(0xFF65A30D))
+            ),
+            OfflineGameItem(
+                id = "glow_hexagon_pop",
+                title = "Glow Hexagon Pop",
+                tag = "ARCADE",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&q=80",
+                url = "https://hextris.io",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF8B5CF6), Color(0xFF6D28D9))
+            ),
+            OfflineGameItem(
+                id = "brick_smasher_dx",
+                title = "Brick Smasher DX",
+                tag = "ARCADE",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&q=80",
+                url = "https://bmorelli25.github.io/Breakout-Game-JavaScript/",
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF06B6D4), Color(0xFF0891B2))
+            ),
+            OfflineGameItem(
+                id = "glow_tic_tac_ai",
+                title = "Glow Tic-Tac AI",
+                tag = "CASUAL",
+                isLandscape = false,
+                thumb = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
                 url = "https://kenrick95.github.io/c4/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFF00F2FE), Color(0xFF4FACFE)),
-                iconGlyph = "❌"
-            ),
-            OfflineGameItem(
-                id = "knife_master",
-                title = "Knife Master",
-                category = "ACTION",
-                isLandscape = false,
-                url = "https://iamkun.github.io/tower_game/",
-                rating = "4.8 ★",
-                gradientColors = listOf(Color(0xFFEB3349), Color(0xFFF45C43)),
-                iconGlyph = "🗡️"
+                rating = "4.9 ★",
+                gradientColors = listOf(Color(0xFF00F2FE), Color(0xFF4FACFE))
             )
         )
     }
@@ -664,7 +671,7 @@ fun OfflineVaultScreen(
                                 label = "CardScaleBounce"
                             )
 
-                            // Card Surface: RoundedCornerShape(20.dp), background Color(0xFF0F172A), border 1dp Color.White.copy(0.12f)
+                            // Card Surface: RoundedCornerShape(18.dp), Dark Obsidian background (#111827), subtle 1dp glow border
                             Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -685,68 +692,67 @@ fun OfflineVaultScreen(
                                             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                                         }
                                     },
-                                shape = RoundedCornerShape(20.dp),
-                                color = Color(0xFF0F172A),
+                                shape = RoundedCornerShape(18.dp),
+                                color = Color(0xFF111827),
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
                             ) {
                                 Column(modifier = Modifier.fillMaxWidth()) {
-                                    // Poster Header: 145dp height banner featuring Brush.linearGradient(game.gradientColors)
+                                    // Hero Poster: Fixed 140dp height Box with AsyncImage poster artwork
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(145.dp)
-                                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                            .height(140.dp)
+                                            .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
                                             .background(Brush.linearGradient(game.gradientColors))
                                     ) {
-                                        // Centered 54sp glowing hero glyph with a soft radial halo behind it
+                                        AsyncImage(
+                                            model = game.thumb,
+                                            contentDescription = game.title,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+
+                                        // Overlay bottom gradient scrim (Black.copy(0.85f) to Transparent) for 100% text readability
                                         Box(
                                             modifier = Modifier
-                                                .size(72.dp)
+                                                .fillMaxSize()
                                                 .background(
-                                                    brush = Brush.radialGradient(
-                                                        listOf(Color.White.copy(alpha = 0.25f), Color.Transparent)
-                                                    ),
-                                                    shape = CircleShape
+                                                    Brush.verticalGradient(
+                                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
+                                                    )
                                                 )
-                                                .align(Alignment.Center),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = game.iconGlyph,
-                                                fontSize = 54.sp
-                                            )
-                                        }
+                                        )
 
-                                        // Top-Left Badge: Frosted glass chip (Color.Black.copy(0.55f)) showing Genre Tag
+                                        // Top-Left Badge: Frosted glass badge with game.tag (9.sp, FontWeight.Black)
                                         Surface(
                                             shape = RoundedCornerShape(8.dp),
-                                            color = Color.Black.copy(alpha = 0.55f),
+                                            color = Color.Black.copy(alpha = 0.60f),
                                             border = BorderStroke(0.8.dp, Color.White.copy(alpha = 0.25f)),
                                             modifier = Modifier
                                                 .align(Alignment.TopStart)
                                                 .padding(8.dp)
                                         ) {
                                             Text(
-                                                text = game.category,
+                                                text = game.tag,
                                                 color = Color.White,
                                                 fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
+                                                fontWeight = FontWeight.Black,
                                                 letterSpacing = 0.5.sp,
                                                 modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
                                             )
                                         }
 
-                                        // Top-Right Badge: Dark pill showing "★ 4.9" in gold (#FFD700)
+                                        // Top-Right Badge: Gold rating pill "★ 4.9"
                                         Surface(
                                             shape = RoundedCornerShape(8.dp),
-                                            color = Color.Black.copy(alpha = 0.55f),
-                                            border = BorderStroke(0.8.dp, Color(0xFFFFD700).copy(alpha = 0.3f)),
+                                            color = Color.Black.copy(alpha = 0.60f),
+                                            border = BorderStroke(0.8.dp, Color(0xFFFFD700).copy(alpha = 0.4f)),
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
                                                 .padding(8.dp)
                                         ) {
                                             Text(
-                                                text = game.rating,
+                                                text = "★ 4.9",
                                                 color = Color(0xFFFFD700),
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -754,10 +760,10 @@ fun OfflineVaultScreen(
                                             )
                                         }
 
-                                        // Bottom-Right Badge: Subtle orientation tag ("📱 PORTRAIT" or "🔄 LANDSCAPE")
+                                        // Bottom-Right Badge: Cyan / Amber pill ("📱 PORTRAIT" or "🔄 LANDSCAPE")
                                         Surface(
                                             shape = RoundedCornerShape(6.dp),
-                                            color = Color.Black.copy(alpha = 0.60f),
+                                            color = Color.Black.copy(alpha = 0.65f),
                                             modifier = Modifier
                                                 .align(Alignment.BottomEnd)
                                                 .padding(6.dp)
@@ -772,7 +778,7 @@ fun OfflineVaultScreen(
                                         }
                                     }
 
-                                    // Content & Button
+                                    // Content & Button Footer
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -780,21 +786,21 @@ fun OfflineVaultScreen(
                                     ) {
                                         Text(
                                             text = game.title,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
                                             color = Color.White,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                         Text(
-                                            text = "60 FPS • Haptics Enabled",
+                                            text = "HD 60 FPS • Haptics Enabled",
                                             fontSize = 11.sp,
                                             color = Color(0xFF94A3B8),
                                             maxLines = 1
                                         )
                                         Spacer(modifier = Modifier.height(10.dp))
 
-                                        // Full-width vibrant gradient button, text "PLAY NOW ▶"
+                                        // Full-width Gradient Button: Emerald Green (#00E676) to Sky Blue (#00B0FF)
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -814,7 +820,6 @@ fun OfflineVaultScreen(
                                                     activeOfflineGame = game
                                                     onGamePlayingStateChanged(true)
 
-                                                    // SECTION 4.1: Launch Logic Orientation Setting
                                                     activity?.requestedOrientation = if (game.isLandscape) {
                                                         ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                                                     } else {
@@ -824,7 +829,7 @@ fun OfflineVaultScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
-                                                text = "PLAY NOW ▶",
+                                                text = "PLAY ▶",
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Black,
                                                 color = Color.Black
@@ -852,42 +857,18 @@ fun OfflineVaultScreen(
                     factory = { ctx ->
                         WebView(ctx).apply {
                             layoutParams = ViewGroup.LayoutParams(-1, -1)
-                            setLayerType(View.LAYER_TYPE_NONE, null)
+                            setLayerType(View.LAYER_TYPE_HARDWARE, null)
                             setBackgroundColor(android.graphics.Color.BLACK)
 
-                            webChromeClient = object : WebChromeClient() {
-                                override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                                    super.onProgressChanged(view, newProgress)
-                                }
-                            }
+                            webChromeClient = WebChromeClient()
 
                             webViewClient = object : WebViewClient() {
                                 override fun onPageFinished(view: WebView?, url: String?) {
                                     super.onPageFinished(view, url)
-                                    // Force viewport responsiveness and prevent canvas 0x0 collapse
                                     view?.evaluateJavascript(
-                                        """
-                                        (function() {
-                                            document.body.style.margin = '0';
-                                            document.body.style.padding = '0';
-                                            document.body.style.overflow = 'hidden';
-                                            document.body.style.backgroundColor = '#000000';
-                                            var metas = document.getElementsByTagName('meta');
-                                            var hasViewport = false;
-                                            for (var i=0; i<metas.length; i++) {
-                                                if (metas[i].name === 'viewport') { hasViewport = true; }
-                                            }
-                                            if (!hasViewport) {
-                                                var meta = document.createElement('meta');
-                                                meta.name = 'viewport';
-                                                meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-                                                document.head.appendChild(meta);
-                                            }
-                                        })();
-                                        """.trimIndent(), null
+                                        "document.body.style.margin='0';document.body.style.padding='0';document.body.style.overflow='hidden';",
+                                        null
                                     )
-                                    view?.requestLayout()
-                                    view?.invalidate()
                                 }
 
                                 override fun onReceivedError(
@@ -910,10 +891,6 @@ fun OfflineVaultScreen(
                                 allowUniversalAccessFromFileURLs = true
                                 useWideViewPort = true
                                 loadWithOverviewMode = true
-                                setSupportZoom(false)
-                                displayZoomControls = false
-                                builtInZoomControls = false
-                                mediaPlaybackRequiresUserGesture = false
                                 mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                                 cacheMode = WebSettings.LOAD_DEFAULT
                                 userAgentString = "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
