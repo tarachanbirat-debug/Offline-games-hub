@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -105,7 +106,7 @@ fun SettingsScreen(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.VolumeUp, contentDescription = null, tint = CandyCyan)
+            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = CandyCyan)
             Spacer(modifier = Modifier.width(12.dp))
             Column {
               Text("Game Sound Effects", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -346,7 +347,7 @@ fun SettingsScreen(
         Text("CREATOR & INFO", color = VaultTextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         Text("Offline Game Station 2.0", color = Color.White, fontWeight = FontWeight.Black, fontSize = 15.sp)
         Text(
-          "All 10 games are built with native physics and zero external internet dependencies. Play anywhere, anytime without Wi-Fi.",
+          "Unlimited games built with native physics and zero external internet dependencies. Play anywhere, anytime without Wi-Fi.",
           color = VaultTextSecondary,
           fontSize = 12.sp,
           lineHeight = 16.sp

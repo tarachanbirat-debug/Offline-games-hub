@@ -11,9 +11,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.VolumeMute
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -201,7 +201,7 @@ fun UniversalGameHeader(
           .testTag("game_sound_toggle")
       ) {
         Icon(
-          imageVector = if (soundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeMute,
+          imageVector = if (soundEnabled) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeOff,
           contentDescription = "Toggle Sound",
           tint = if (soundEnabled) CandyCyan else VaultTextMuted,
           modifier = Modifier.size(18.dp)

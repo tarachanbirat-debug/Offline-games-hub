@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -353,9 +353,9 @@ fun Game2048Screen(
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
         DPadButton(icon = Icons.Default.KeyboardArrowUp, onClick = { move(Direction.UP) })
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-          DPadButton(icon = Icons.Default.KeyboardArrowLeft, onClick = { move(Direction.LEFT) })
+          DPadButton(icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft, onClick = { move(Direction.LEFT) })
           DPadButton(icon = Icons.Default.KeyboardArrowDown, onClick = { move(Direction.DOWN) })
-          DPadButton(icon = Icons.Default.KeyboardArrowRight, onClick = { move(Direction.RIGHT) })
+          DPadButton(icon = Icons.AutoMirrored.Filled.KeyboardArrowRight, onClick = { move(Direction.RIGHT) })
         }
       }
     }

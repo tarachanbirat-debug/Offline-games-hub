@@ -8,7 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -243,7 +243,7 @@ fun WordGuessScreen(
               contentAlignment = Alignment.Center
             ) {
               if (key == "DEL") {
-                Icon(Icons.Default.Backspace, contentDescription = "Delete", tint = Color.White, modifier = Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = "Delete", tint = Color.White, modifier = Modifier.size(16.dp))
               } else {
                 Text(
                   text = key,

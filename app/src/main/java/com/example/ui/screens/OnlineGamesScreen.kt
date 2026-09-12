@@ -95,6 +95,7 @@ fun OnlineGamesScreen(
             ViewGroup.LayoutParams.MATCH_PARENT
           )
 
+          @Suppress("DEPRECATION")
           settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -421,7 +422,7 @@ fun OnlineGamesScreen(
         )
 
         Text(
-          text = "Embed games require an active internet connection to load external iframes (GameDistribution, Itch.io, etc.).\n\nYou can also play our 10 native offline games without any Wi-Fi!",
+          text = "Embed games require an active internet connection to load external iframes (GameDistribution, Itch.io, etc.).\n\nYou can also play our unlimited offline games without any Wi-Fi!",
           color = VaultTextSecondary,
           fontSize = 13.sp,
           textAlign = androidx.compose.ui.text.style.TextAlign.Center,

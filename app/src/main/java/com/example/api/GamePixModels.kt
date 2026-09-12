@@ -13,19 +13,19 @@ data class GamePixResponse(
 
 @JsonClass(generateAdapter = true)
 data class GamePixGameDto(
-  @Json(name = "id") val id: String,
-  @Json(name = "title") val title: String,
-  @Json(name = "category") val category: String? = "Arcade",
-  @Json(name = "thumbnailUrl") val thumbnailUrl: String? = null,
-  @Json(name = "image") val image: String? = null,
-  @Json(name = "bannerUrl") val bannerUrl: String? = null,
-  @Json(name = "url") val url: String? = null,
-  @Json(name = "direct_url") val directUrl: String? = null,
-  @Json(name = "description") val description: String? = null,
-  @Json(name = "orientation") val orientation: String? = "PORTRAIT",
-  @Json(name = "featured") val featured: Boolean? = false,
-  @Json(name = "views") val views: Int? = 0,
-  @Json(name = "quality") val quality: Double? = 5.0
+  @param:Json(name = "id") val id: String,
+  @param:Json(name = "title") val title: String,
+  @param:Json(name = "category") val category: String? = "Arcade",
+  @param:Json(name = "thumbnailUrl") val thumbnailUrl: String? = null,
+  @param:Json(name = "image") val image: String? = null,
+  @param:Json(name = "bannerUrl") val bannerUrl: String? = null,
+  @param:Json(name = "url") val url: String? = null,
+  @param:Json(name = "direct_url") val directUrl: String? = null,
+  @param:Json(name = "description") val description: String? = null,
+  @param:Json(name = "orientation") val orientation: String? = "PORTRAIT",
+  @param:Json(name = "featured") val featured: Boolean? = false,
+  @param:Json(name = "views") val views: Int? = 0,
+  @param:Json(name = "quality") val quality: Double? = 5.0
 ) {
   fun getEffectiveThumbnail(): String {
     return thumbnailUrl?.takeIf { it.isNotBlank() }

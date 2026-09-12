@@ -31,16 +31,39 @@ fun GameCardArtwork(
   Canvas(modifier = modifier.fillMaxSize()) {
     when (gameId) {
       "water_sort" -> drawWaterSortIcon(this)
-      "game_2048" -> draw2048Icon(this)
-      "snake" -> drawSnakeIcon(this)
-      "highway_racer", "threejs_galaxy_runner" -> drawHighwayRacerIcon(this)
+      "game_2048", "2048" -> draw2048Icon(this)
+      "snake", "nokia_snake" -> drawSnakeIcon(this)
+      "highway_racer", "racer", "speed_racer", "threejs_galaxy_runner" -> drawHighwayRacerIcon(this)
       "mini_ludo" -> drawLudoIcon(this)
-      "tic_tac_toe" -> drawTicTacToeIcon(this)
-      "brick_breaker" -> drawBrickBreakerIcon(this)
-      "memory_match" -> drawMemoryMatchIcon(this)
+      "tic_tac_toe", "tictactoe", "glow_xo" -> drawTicTacToeIcon(this)
+      "brick_breaker", "breaker", "breakout" -> drawBrickBreakerIcon(this)
+      "memory_match", "memory_matrix", "memory_quest" -> drawMemoryMatchIcon(this)
       "word_guess" -> drawWordGuessIcon(this)
       "dot_box" -> drawDotBoxIcon(this)
-      "pong" -> drawBrickBreakerIcon(this)
+      "pong", "cyber_pong" -> drawPongIcon(this)
+      "pacman" -> drawPacmanIcon(this)
+      "clumsy_bird", "flappy", "doodle_jump" -> drawFlappyIcon(this)
+      "tetris", "block_puzzle" -> drawTetrisIcon(this)
+      "hextris" -> drawHextrisIcon(this)
+      "knife_hit" -> drawKnifeHitIcon(this)
+      "space_shooter", "space", "space_combat" -> drawSpaceShooterIcon(this)
+      "tower_stack", "tower_master", "tower_game", "tap_dash" -> drawTowerStackIcon(this)
+      "basketball" -> drawBasketballIcon(this)
+      "bubble_shooter" -> drawBubbleShooterIcon(this)
+      "color_switch" -> drawColorSwitchIcon(this)
+      "crossy_road" -> drawCrossyRoadIcon(this)
+      "match3", "candy_swap" -> drawMatch3Icon(this)
+      "subway_runner" -> drawSubwayRunnerIcon(this)
+      "retro_nes" -> drawRetroNesIcon(this)
+      "bounce" -> drawBounceIcon(this)
+      "fruit_ninja" -> drawFruitNinjaIcon(this)
+      "duck_hunt" -> drawDuckHuntIcon(this)
+      "minesweeper" -> drawMinesweeperIcon(this)
+      "simon_says" -> drawSimonSaysIcon(this)
+      "astray_maze" -> drawAstrayMazeIcon(this)
+      "webgl_cube" -> drawWebGlCubeIcon(this)
+      "color_blast" -> drawColorBlastIcon(this)
+      "endless_runner" -> drawEndlessRunnerIcon(this)
       else -> drawGenericArcadeIcon(this)
     }
 
@@ -447,14 +470,14 @@ private fun drawSnakeIcon(scope: DrawScope) {
   // Apple Stem & Green Leaf
   val stemPath = Path().apply {
     moveTo(appleX, appleY - appleR * 0.8f)
-    quadraticBezierTo(appleX + 6f, appleY - appleR * 1.3f, appleX + 12f, appleY - appleR * 1.4f)
+    quadraticTo(appleX + 6f, appleY - appleR * 1.3f, appleX + 12f, appleY - appleR * 1.4f)
   }
   scope.drawPath(stemPath, color = Color(0xFF5D4037), style = Stroke(width = 4f))
 
   val leafPath = Path().apply {
     moveTo(appleX + 4f, appleY - appleR * 0.9f)
-    quadraticBezierTo(appleX + 22f, appleY - appleR * 1.3f, appleX + 26f, appleY - appleR * 0.9f)
-    quadraticBezierTo(appleX + 14f, appleY - appleR * 0.7f, appleX + 4f, appleY - appleR * 0.9f)
+    quadraticTo(appleX + 22f, appleY - appleR * 1.3f, appleX + 26f, appleY - appleR * 0.9f)
+    quadraticTo(appleX + 14f, appleY - appleR * 0.7f, appleX + 4f, appleY - appleR * 0.9f)
     close()
   }
   scope.drawPath(leafPath, brush = Brush.linearGradient(listOf(Color(0xFF76FF03), Color(0xFF2E7D32))))
@@ -548,7 +571,7 @@ private fun drawSnakeIcon(scope: DrawScope) {
   // Cheerful Smile
   val smilePath = Path().apply {
     moveTo(head.x - headR * 0.25f, head.y + headR * 0.35f)
-    quadraticBezierTo(head.x, head.y + headR * 0.65f, head.x + headR * 0.35f, head.y + headR * 0.32f)
+    quadraticTo(head.x, head.y + headR * 0.65f, head.x + headR * 0.35f, head.y + headR * 0.32f)
   }
   scope.drawPath(smilePath, color = Color(0xFF3E2723), style = Stroke(width = 4f))
 }
@@ -1368,12 +1391,1224 @@ private fun drawGenericArcadeIcon(scope: DrawScope) {
 private fun drawStarBurst(scope: DrawScope, center: Offset, size: Float, color: Color) {
   val path = Path().apply {
     moveTo(center.x, center.y - size)
-    quadraticBezierTo(center.x, center.y, center.x + size, center.y)
-    quadraticBezierTo(center.x, center.y, center.x, center.y + size)
-    quadraticBezierTo(center.x, center.y, center.x - size, center.y)
-    quadraticBezierTo(center.x, center.y, center.x, center.y - size)
+    quadraticTo(center.x, center.y, center.x + size, center.y)
+    quadraticTo(center.x, center.y, center.x, center.y + size)
+    quadraticTo(center.x, center.y, center.x - size, center.y)
+    quadraticTo(center.x, center.y, center.x, center.y - size)
     close()
   }
   scope.drawPath(path, color)
   scope.drawCircle(Color.White, size * 0.25f, center)
 }
+
+// -------------------------------------------------------------
+// Pac-Man 3D Retro Icon (Neon maze, Pac-Man, Power Pellets & Ghost)
+// -------------------------------------------------------------
+private fun drawPacmanIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFF0F172A), Color(0xFF020617), Color.Black),
+      center = Offset(w * 0.5f, h * 0.5f),
+      radius = w * 0.7f
+    )
+  )
+
+  // Neon maze borders
+  val strokePaint = Stroke(width = 3.5f)
+  scope.drawRoundRect(
+    color = Color(0xFF2563EB).copy(alpha = 0.5f),
+    topLeft = Offset(w * 0.08f, h * 0.12f),
+    size = Size(w * 0.84f, h * 0.76f),
+    cornerRadius = CornerRadius(14f, 14f),
+    style = strokePaint
+  )
+
+  // Power pellets
+  for (i in 1..3) {
+    scope.drawCircle(
+      color = Color(0xFFFEF08A),
+      radius = w * 0.025f,
+      center = Offset(w * (0.45f + i * 0.12f), h * 0.52f)
+    )
+  }
+
+  // Pac-Man Body (Mouth open ~60 degrees)
+  val pacCenter = Offset(w * 0.35f, h * 0.52f)
+  val pacRadius = w * 0.19f
+  val mouthPath = Path().apply {
+    moveTo(pacCenter.x, pacCenter.y)
+    arcTo(
+      rect = androidx.compose.ui.geometry.Rect(
+        pacCenter.x - pacRadius, pacCenter.y - pacRadius,
+        pacCenter.x + pacRadius, pacCenter.y + pacRadius
+      ),
+      startAngleDegrees = 35f,
+      sweepAngleDegrees = 290f,
+      forceMoveTo = false
+    )
+    close()
+  }
+  scope.drawPath(
+    path = mouthPath,
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFFFEF08A), Color(0xFFFACC15), Color(0xFFEAB308), Color(0xFFCA8A04)),
+      center = Offset(pacCenter.x - pacRadius * 0.3f, pacCenter.y - pacRadius * 0.3f),
+      radius = pacRadius * 1.3f
+    )
+  )
+  // Specular shine on Pac-Man
+  scope.drawCircle(
+    color = Color.White.copy(alpha = 0.6f),
+    radius = pacRadius * 0.22f,
+    center = Offset(pacCenter.x - pacRadius * 0.25f, pacCenter.y - pacRadius * 0.45f)
+  )
+
+  // Neon Red Ghost (Blinky) on left
+  val ghostX = w * 0.14f
+  val ghostY = h * 0.44f
+  val ghostW = w * 0.13f
+  val ghostH = h * 0.16f
+  scope.drawRoundRect(
+    brush = Brush.verticalGradient(listOf(Color(0xFFFF3366), Color(0xFFCC0033))),
+    topLeft = Offset(ghostX, ghostY),
+    size = Size(ghostW, ghostH),
+    cornerRadius = CornerRadius(16f, 16f)
+  )
+  // Ghost eyes
+  scope.drawCircle(Color.White, ghostW * 0.22f, Offset(ghostX + ghostW * 0.35f, ghostY + ghostH * 0.4f))
+  scope.drawCircle(Color.White, ghostW * 0.22f, Offset(ghostX + ghostW * 0.75f, ghostY + ghostH * 0.4f))
+  scope.drawCircle(Color(0xFF0033CC), ghostW * 0.12f, Offset(ghostX + ghostW * 0.42f, ghostY + ghostH * 0.4f))
+  scope.drawCircle(Color(0xFF0033CC), ghostW * 0.12f, Offset(ghostX + ghostW * 0.82f, ghostY + ghostH * 0.4f))
+}
+
+// -------------------------------------------------------------
+// Flappy / Clumsy Bird 3D Icon (Sky, pipes, cute chubby bird)
+// -------------------------------------------------------------
+private fun drawFlappyIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      colors = listOf(Color(0xFF38BDF8), Color(0xFF0284C7), Color(0xFF0369A1))
+    )
+  )
+
+  // Fluffy clouds
+  scope.drawCircle(Color.White.copy(alpha = 0.7f), w * 0.16f, Offset(w * 0.25f, h * 0.22f))
+  scope.drawCircle(Color.White.copy(alpha = 0.7f), w * 0.12f, Offset(w * 0.38f, h * 0.25f))
+  scope.drawCircle(Color.White.copy(alpha = 0.6f), w * 0.14f, Offset(w * 0.75f, h * 0.3f))
+
+  // Green Mario-style Pipe on right
+  val pipeX = w * 0.72f
+  val pipeW = w * 0.22f
+  scope.drawRoundRect(
+    brush = Brush.horizontalGradient(listOf(Color(0xFF22C55E), Color(0xFF15803D), Color(0xFF166534))),
+    topLeft = Offset(pipeX, h * 0.52f),
+    size = Size(pipeW, h * 0.48f),
+    cornerRadius = CornerRadius(6f, 6f)
+  )
+  scope.drawRoundRect(
+    brush = Brush.horizontalGradient(listOf(Color(0xFF4ADE80), Color(0xFF22C55E), Color(0xFF15803D))),
+    topLeft = Offset(pipeX - w * 0.03f, h * 0.46f),
+    size = Size(pipeW + w * 0.06f, h * 0.1f),
+    cornerRadius = CornerRadius(8f, 8f)
+  )
+
+  // Chubby Yellow Bird in center
+  val birdCenter = Offset(w * 0.4f, h * 0.54f)
+  val birdR = w * 0.2f
+  scope.drawCircle(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFFFEF08A), Color(0xFFFBBF24), Color(0xFFD97706)),
+      center = Offset(birdCenter.x - birdR * 0.2f, birdCenter.y - birdR * 0.3f),
+      radius = birdR * 1.2f
+    ),
+    radius = birdR,
+    center = birdCenter
+  )
+  // Bird wing
+  scope.drawOval(
+    brush = Brush.verticalGradient(listOf(Color(0xFFFDE68A), Color(0xFFF59E0B))),
+    topLeft = Offset(birdCenter.x - birdR * 0.85f, birdCenter.y - birdR * 0.2f),
+    size = Size(birdR * 0.9f, birdR * 0.65f)
+  )
+  // Big Eye
+  scope.drawCircle(Color.White, birdR * 0.38f, Offset(birdCenter.x + birdR * 0.4f, birdCenter.y - birdR * 0.25f))
+  scope.drawCircle(Color.Black, birdR * 0.18f, Offset(birdCenter.x + birdR * 0.48f, birdCenter.y - birdR * 0.25f))
+  scope.drawCircle(Color.White, birdR * 0.07f, Offset(birdCenter.x + birdR * 0.45f, birdCenter.y - birdR * 0.3f))
+  // Orange Beak
+  val beakPath = Path().apply {
+    moveTo(birdCenter.x + birdR * 0.7f, birdCenter.y - birdR * 0.05f)
+    lineTo(birdCenter.x + birdR * 1.35f, birdCenter.y + birdR * 0.12f)
+    lineTo(birdCenter.x + birdR * 0.65f, birdCenter.y + birdR * 0.35f)
+    close()
+  }
+  scope.drawPath(
+    path = beakPath,
+    brush = Brush.horizontalGradient(listOf(Color(0xFFF97316), Color(0xFFEA580C)))
+  )
+}
+
+// -------------------------------------------------------------
+// Tetris Neon 3D Icon (Glowing falling tetrominoes on cyber grid)
+// -------------------------------------------------------------
+private fun drawTetrisIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      colors = listOf(Color(0xFF1E1B4B), Color(0xFF0F172A), Color(0xFF020617))
+    )
+  )
+
+  // Cyber grid lines
+  for (i in 1..4) {
+    scope.drawLine(
+      color = Color(0xFF38BDF8).copy(alpha = 0.15f),
+      start = Offset(w * (i * 0.2f), 0f),
+      end = Offset(w * (i * 0.2f), h),
+      strokeWidth = 1.5f
+    )
+  }
+
+  val sz = w * 0.15f
+
+  // Cyan I-block (horizontal 3-cluster)
+  for (col in 0..2) {
+    val bx = w * 0.18f + col * sz
+    val by = h * 0.62f
+    scope.drawRoundRect(
+      brush = Brush.linearGradient(listOf(Color(0xFF22D3EE), Color(0xFF0891B2))),
+      topLeft = Offset(bx, by),
+      size = Size(sz - 2f, sz - 2f),
+      cornerRadius = CornerRadius(6f, 6f)
+    )
+    scope.drawRoundRect(
+      color = Color.White.copy(alpha = 0.5f),
+      topLeft = Offset(bx + 2f, by + 2f),
+      size = Size(sz - 6f, sz - 6f),
+      cornerRadius = CornerRadius(4f, 4f),
+      style = Stroke(1.5f)
+    )
+  }
+
+  // Purple T-Block in center
+  val tx = w * 0.35f
+  val ty = h * 0.32f
+  // Top row
+  for (col in 0..2) {
+    val bx = tx + col * sz
+    val by = ty
+    scope.drawRoundRect(
+      brush = Brush.linearGradient(listOf(Color(0xFFA855F7), Color(0xFF7E22CE))),
+      topLeft = Offset(bx, by),
+      size = Size(sz - 2f, sz - 2f),
+      cornerRadius = CornerRadius(6f, 6f)
+    )
+  }
+  // T-bottom center
+  scope.drawRoundRect(
+    brush = Brush.linearGradient(listOf(Color(0xFFA855F7), Color(0xFF7E22CE))),
+    topLeft = Offset(tx + sz, ty + sz),
+    size = Size(sz - 2f, sz - 2f),
+    cornerRadius = CornerRadius(6f, 6f)
+  )
+
+  // Orange L-block on top right
+  val lx = w * 0.65f
+  val ly = h * 0.15f
+  scope.drawRoundRect(
+    brush = Brush.linearGradient(listOf(Color(0xFFFB923C), Color(0xFFEA580C))),
+    topLeft = Offset(lx, ly),
+    size = Size(sz - 2f, sz - 2f),
+    cornerRadius = CornerRadius(6f, 6f)
+  )
+  scope.drawRoundRect(
+    brush = Brush.linearGradient(listOf(Color(0xFFFB923C), Color(0xFFEA580C))),
+    topLeft = Offset(lx, ly + sz),
+    size = Size(sz - 2f, sz - 2f),
+    cornerRadius = CornerRadius(6f, 6f)
+  )
+
+  drawStarBurst(scope, Offset(w * 0.8f, h * 0.25f), 12f, Color(0xFFFEF08A))
+}
+
+// -------------------------------------------------------------
+// Hextris Neon Icon (Concentric hexagon geometry with neon colors)
+// -------------------------------------------------------------
+private fun drawHextrisIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+  val center = Offset(w * 0.5f, h * 0.5f)
+
+  scope.drawRect(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFF1E1B4B), Color(0xFF0F172A), Color.Black),
+      center = center,
+      radius = w * 0.7f
+    )
+  )
+
+  val radii = listOf(w * 0.38f, w * 0.28f, w * 0.18f)
+  val colors = listOf(Color(0xFFEC4899), Color(0xFF06B6D4), Color(0xFFEAB308))
+
+  for (i in radii.indices) {
+    val r = radii[i]
+    val c = colors[i]
+    val hexPath = Path().apply {
+      for (vertex in 0..5) {
+        val angle = Math.toRadians((vertex * 60.0) + (i * 15.0))
+        val vx = (center.x + r * Math.cos(angle)).toFloat()
+        val vy = (center.y + r * Math.sin(angle)).toFloat()
+        if (vertex == 0) moveTo(vx, vy) else lineTo(vx, vy)
+      }
+      close()
+    }
+    scope.drawPath(path = hexPath, color = c, style = Stroke(width = 8f))
+  }
+
+  // Inner center glowing hexagon core
+  val corePath = Path().apply {
+    val cr = w * 0.09f
+    for (v in 0..5) {
+      val a = Math.toRadians(v * 60.0)
+      val vx = (center.x + cr * Math.cos(a)).toFloat()
+      val vy = (center.y + cr * Math.sin(a)).toFloat()
+      if (v == 0) moveTo(vx, vy) else lineTo(vx, vy)
+    }
+    close()
+  }
+  scope.drawPath(path = corePath, brush = Brush.radialGradient(listOf(Color.White, Color(0xFF06B6D4))))
+}
+
+// -------------------------------------------------------------
+// Knife Hit Challenge Icon (Wood target log with embedded blades)
+// -------------------------------------------------------------
+private fun drawKnifeHitIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+  val center = Offset(w * 0.5f, h * 0.42f)
+  val logR = w * 0.26f
+
+  scope.drawRect(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFF064E3B), Color(0xFF022C22), Color.Black),
+      center = center,
+      radius = w * 0.7f
+    )
+  )
+
+  // Wooden log with circular rings
+  scope.drawCircle(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFFD97706), Color(0xFF92400E), Color(0xFF78350F)),
+      center = center,
+      radius = logR
+    ),
+    radius = logR,
+    center = center
+  )
+  scope.drawCircle(Color(0xFF451A03), logR * 0.75f, center, style = Stroke(3f))
+  scope.drawCircle(Color(0xFF451A03), logR * 0.45f, center, style = Stroke(2.5f))
+
+  // Sliced apple badge on log center
+  scope.drawCircle(Color(0xFFEF4444), logR * 0.25f, center)
+  scope.drawCircle(Color(0xFF86EFAC), logR * 0.08f, Offset(center.x - 2f, center.y - logR * 0.28f))
+
+  // Embedded knives sticking out
+  val angles = listOf(-60.0, 30.0, 180.0)
+  for (ang in angles) {
+    val rad = Math.toRadians(ang)
+    val tipX = (center.x + logR * Math.cos(rad)).toFloat()
+    val tipY = (center.y + logR * Math.sin(rad)).toFloat()
+    val hiltX = (center.x + (logR + w * 0.16f) * Math.cos(rad)).toFloat()
+    val hiltY = (center.y + (logR + w * 0.16f) * Math.sin(rad)).toFloat()
+    scope.drawLine(Color(0xFFE2E8F0), Offset(tipX, tipY), Offset(hiltX, hiltY), strokeWidth = 5f)
+    scope.drawCircle(Color(0xFFDC2626), 5f, Offset(hiltX, hiltY))
+  }
+
+  // Incoming throwing dagger from bottom
+  val bladeX = w * 0.5f
+  val bladeTop = h * 0.74f
+  val bladeH = h * 0.18f
+  val daggerPath = Path().apply {
+    moveTo(bladeX, bladeTop)
+    lineTo(bladeX - 8f, bladeTop + bladeH * 0.6f)
+    lineTo(bladeX - 4f, bladeTop + bladeH)
+    lineTo(bladeX + 4f, bladeTop + bladeH)
+    lineTo(bladeX + 8f, bladeTop + bladeH * 0.6f)
+    close()
+  }
+  scope.drawPath(daggerPath, brush = Brush.verticalGradient(listOf(Color.White, Color(0xFFCBD5E1))))
+  scope.drawRoundRect(Color(0xFFEF4444), Offset(bladeX - 10f, bladeTop + bladeH * 0.65f), Size(20f, 6f), CornerRadius(3f, 3f))
+}
+
+// -------------------------------------------------------------
+// Galaxy Space Shooter Icon (Starship, laser beams, nebula)
+// -------------------------------------------------------------
+private fun drawSpaceShooterIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      colors = listOf(Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF311042), Color.Black)
+    )
+  )
+
+  // Stars
+  val starOffsets = listOf(
+    Offset(w * 0.15f, h * 0.18f),
+    Offset(w * 0.85f, h * 0.22f),
+    Offset(w * 0.28f, h * 0.42f),
+    Offset(w * 0.76f, h * 0.55f),
+    Offset(w * 0.12f, h * 0.75f)
+  )
+  for (st in starOffsets) {
+    scope.drawCircle(Color.White, 2.5f, st)
+  }
+
+  // Twin glowing lasers
+  scope.drawLine(
+    brush = Brush.verticalGradient(listOf(Color(0xFFF43F5E), Color(0xFFFDA4AF))),
+    start = Offset(w * 0.42f, h * 0.12f),
+    end = Offset(w * 0.42f, h * 0.48f),
+    strokeWidth = 4f
+  )
+  scope.drawLine(
+    brush = Brush.verticalGradient(listOf(Color(0xFFF43F5E), Color(0xFFFDA4AF))),
+    start = Offset(w * 0.58f, h * 0.12f),
+    end = Offset(w * 0.58f, h * 0.48f),
+    strokeWidth = 4f
+  )
+
+  // Starfighter Jet
+  val shipCenter = Offset(w * 0.5f, h * 0.62f)
+  val shipPath = Path().apply {
+    moveTo(shipCenter.x, shipCenter.y - h * 0.18f) // Nose
+    lineTo(shipCenter.x + w * 0.22f, shipCenter.y + h * 0.1f) // Right wing
+    lineTo(shipCenter.x + w * 0.08f, shipCenter.y + h * 0.06f)
+    lineTo(shipCenter.x, shipCenter.y + h * 0.12f) // Tail
+    lineTo(shipCenter.x - w * 0.08f, shipCenter.y + h * 0.06f)
+    lineTo(shipCenter.x - w * 0.22f, shipCenter.y + h * 0.1f) // Left wing
+    close()
+  }
+  scope.drawPath(
+    path = shipPath,
+    brush = Brush.verticalGradient(listOf(Color(0xFF38BDF8), Color(0xFF2563EB), Color(0xFF1D4ED8)))
+  )
+  // Cockpit canopy
+  scope.drawOval(
+    brush = Brush.verticalGradient(listOf(Color(0xFFFEF08A), Color(0xFFF59E0B))),
+    topLeft = Offset(shipCenter.x - w * 0.04f, shipCenter.y - h * 0.08f),
+    size = Size(w * 0.08f, h * 0.09f)
+  )
+  // Jet thrust flame
+  scope.drawCircle(Color(0xFF38BDF8), w * 0.06f, Offset(shipCenter.x, shipCenter.y + h * 0.13f))
+}
+
+// -------------------------------------------------------------
+// Tower Stack Master Icon (Isometric pastel blocks towering)
+// -------------------------------------------------------------
+private fun drawTowerStackIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      colors = listOf(Color(0xFF831843), Color(0xFF500724), Color(0xFF1E1B4B))
+    )
+  )
+
+  val blockColors = listOf(
+    Color(0xFFFDA4AF) to Color(0xFFF43F5E),
+    Color(0xFFFDE047) to Color(0xFFEAB308),
+    Color(0xFF67E8F9) to Color(0xFF06B6D4),
+    Color(0xFFA7F3D0) to Color(0xFF10B981)
+  )
+
+  val blockH = h * 0.12f
+  var blockY = h * 0.72f
+  var curW = w * 0.65f
+
+  for (i in blockColors.indices) {
+    val (cLight, cDark) = blockColors[i]
+    val bx = (w - curW) / 2f + (if (i % 2 == 1) 12f else -10f)
+    scope.drawRoundRect(
+      brush = Brush.horizontalGradient(listOf(cLight, cDark)),
+      topLeft = Offset(bx, blockY),
+      size = Size(curW, blockH),
+      cornerRadius = CornerRadius(8f, 8f)
+    )
+    scope.drawRoundRect(
+      color = Color.White.copy(alpha = 0.4f),
+      topLeft = Offset(bx + 2f, blockY + 2f),
+      size = Size(curW - 4f, 4f),
+      cornerRadius = CornerRadius(2f, 2f)
+    )
+    blockY -= blockH * 0.82f
+    curW -= w * 0.07f
+  }
+}
+
+// -------------------------------------------------------------
+// Basketball Shootout Icon (Textured 3D ball, hoop rim & net)
+// -------------------------------------------------------------
+private fun drawBasketballIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFF1E293B), Color(0xFF0F172A), Color.Black),
+      center = Offset(w * 0.5f, h * 0.5f),
+      radius = w * 0.7f
+    )
+  )
+
+  // 3D Basketball
+  val ballCenter = Offset(w * 0.48f, h * 0.46f)
+  val ballR = w * 0.25f
+  scope.drawCircle(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFFFB923C), Color(0xFFEA580C), Color(0xFFC2410C), Color(0xFF7C2D12)),
+      center = Offset(ballCenter.x - ballR * 0.35f, ballCenter.y - ballR * 0.35f),
+      radius = ballR * 1.3f
+    ),
+    radius = ballR,
+    center = ballCenter
+  )
+
+  // Black curved seams
+  scope.drawLine(
+    color = Color.Black.copy(alpha = 0.75f),
+    start = Offset(ballCenter.x - ballR, ballCenter.y),
+    end = Offset(ballCenter.x + ballR, ballCenter.y),
+    strokeWidth = 3f
+  )
+  scope.drawLine(
+    color = Color.Black.copy(alpha = 0.75f),
+    start = Offset(ballCenter.x, ballCenter.y - ballR),
+    end = Offset(ballCenter.x, ballCenter.y + ballR),
+    strokeWidth = 3f
+  )
+  scope.drawArc(
+    color = Color.Black.copy(alpha = 0.75f),
+    startAngle = -80f,
+    sweepAngle = 160f,
+    useCenter = false,
+    topLeft = Offset(ballCenter.x - ballR * 0.75f, ballCenter.y - ballR),
+    size = Size(ballR * 0.8f, ballR * 2f),
+    style = Stroke(3f)
+  )
+
+  // Specular reflection
+  scope.drawCircle(
+    color = Color.White.copy(alpha = 0.5f),
+    radius = ballR * 0.22f,
+    center = Offset(ballCenter.x - ballR * 0.32f, ballCenter.y - ballR * 0.38f)
+  )
+
+  // Orange/Red rim in background
+  scope.drawRoundRect(
+    color = Color(0xFFEF4444),
+    topLeft = Offset(w * 0.62f, h * 0.68f),
+    size = Size(w * 0.28f, 7f),
+    cornerRadius = CornerRadius(3f, 3f)
+  )
+}
+
+// -------------------------------------------------------------
+// Bubble Shooter Pop Icon (Vibrant cluster of shiny marble bubbles)
+// -------------------------------------------------------------
+private fun drawBubbleShooterIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      colors = listOf(Color(0xFF3B0764), Color(0xFF1E1B4B), Color(0xFF0F172A))
+    )
+  )
+
+  val bubbles = listOf(
+    Triple(Offset(w * 0.35f, h * 0.32f), w * 0.14f, listOf(Color(0xFFEC4899), Color(0xFFBE185D))),
+    Triple(Offset(w * 0.65f, h * 0.32f), w * 0.14f, listOf(Color(0xFF06B6D4), Color(0xFF0E7490))),
+    Triple(Offset(w * 0.50f, h * 0.50f), w * 0.16f, listOf(Color(0xFFFACC15), Color(0xFFCA8A04))),
+    Triple(Offset(w * 0.28f, h * 0.62f), w * 0.13f, listOf(Color(0xFF10B981), Color(0xFF047857))),
+    Triple(Offset(w * 0.72f, h * 0.62f), w * 0.13f, listOf(Color(0xFFA855F7), Color(0xFF7E22CE)))
+  )
+
+  for ((center, r, pal) in bubbles) {
+    scope.drawCircle(
+      brush = Brush.radialGradient(
+        colors = pal,
+        center = Offset(center.x - r * 0.3f, center.y - r * 0.3f),
+        radius = r * 1.2f
+      ),
+      radius = r,
+      center = center
+    )
+    // Shiny specular gleam
+    scope.drawCircle(
+      color = Color.White.copy(alpha = 0.7f),
+      radius = r * 0.22f,
+      center = Offset(center.x - r * 0.32f, center.y - r * 0.35f)
+    )
+  }
+}
+
+// -------------------------------------------------------------
+// Color Switch Rush Icon (4-color rotating ring with bouncing ball)
+// -------------------------------------------------------------
+private fun drawColorSwitchIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+  val center = Offset(w * 0.5f, h * 0.48f)
+  val ringR = w * 0.28f
+
+  scope.drawRect(Color(0xFF0B0F19))
+
+  val arcColors = listOf(Color(0xFFFACC15), Color(0xFFEC4899), Color(0xFF06B6D4), Color(0xFF8B5CF6))
+  for (i in 0..3) {
+    scope.drawArc(
+      color = arcColors[i],
+      startAngle = i * 90f + 25f,
+      sweepAngle = 80f,
+      useCenter = false,
+      topLeft = Offset(center.x - ringR, center.y - ringR),
+      size = Size(ringR * 2f, ringR * 2f),
+      style = Stroke(width = 14f)
+    )
+  }
+
+  // Bouncing glowing ball in center
+  scope.drawCircle(
+    brush = Brush.radialGradient(listOf(Color.White, Color(0xFFFACC15))),
+    radius = w * 0.08f,
+    center = center
+  )
+}
+
+// -------------------------------------------------------------
+// Crossy Road 2D Icon (Blocky voxel chicken on road)
+// -------------------------------------------------------------
+private fun drawCrossyRoadIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  // Grass and Road
+  scope.drawRect(Color(0xFF15803D), Offset(0f, 0f), Size(w, h * 0.35f))
+  scope.drawRect(Color(0xFF334155), Offset(0f, h * 0.35f), Size(w, h * 0.65f))
+
+  // Dashed white road lanes
+  for (i in 0..3) {
+    scope.drawRoundRect(
+      color = Color.White.copy(alpha = 0.8f),
+      topLeft = Offset(w * 0.12f + i * w * 0.24f, h * 0.65f),
+      size = Size(w * 0.14f, 6f),
+      cornerRadius = CornerRadius(2f, 2f)
+    )
+  }
+
+  // Blocky Voxel Chicken in center
+  val chX = w * 0.38f
+  val chY = h * 0.42f
+  val chS = w * 0.24f
+  // White body cube
+  scope.drawRoundRect(
+    brush = Brush.verticalGradient(listOf(Color(0xFFFFFFFF), Color(0xFFE2E8F0))),
+    topLeft = Offset(chX, chY),
+    size = Size(chS, chS * 0.85f),
+    cornerRadius = CornerRadius(6f, 6f)
+  )
+  // Red Comb
+  scope.drawRoundRect(
+    color = Color(0xFFEF4444),
+    topLeft = Offset(chX + chS * 0.32f, chY - chS * 0.22f),
+    size = Size(chS * 0.36f, chS * 0.25f),
+    cornerRadius = CornerRadius(3f, 3f)
+  )
+  // Yellow Beak
+  scope.drawRoundRect(
+    color = Color(0xFFF59E0B),
+    topLeft = Offset(chX + chS * 0.36f, chY + chS * 0.35f),
+    size = Size(chS * 0.28f, chS * 0.22f),
+    cornerRadius = CornerRadius(2f, 2f)
+  )
+  // Eyes
+  scope.drawCircle(Color.Black, 3.5f, Offset(chX + chS * 0.25f, chY + chS * 0.3f))
+  scope.drawCircle(Color.Black, 3.5f, Offset(chX + chS * 0.75f, chY + chS * 0.3f))
+}
+
+// -------------------------------------------------------------
+// Jewel Match-3 Icon (Sparkling cut gemstones)
+// -------------------------------------------------------------
+private fun drawMatch3Icon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFF4A044E), Color(0xFF1E1B4B), Color(0xFF020617)),
+      center = Offset(w * 0.5f, h * 0.5f),
+      radius = w * 0.7f
+    )
+  )
+
+  // Ruby Diamond in center
+  val rx = w * 0.5f
+  val ry = h * 0.45f
+  val rS = w * 0.22f
+  val rubyPath = Path().apply {
+    moveTo(rx, ry - rS)
+    lineTo(rx + rS, ry)
+    lineTo(rx, ry + rS)
+    lineTo(rx - rS, ry)
+    close()
+  }
+  scope.drawPath(
+    path = rubyPath,
+    brush = Brush.linearGradient(listOf(Color(0xFFFB7185), Color(0xFFE11D48), Color(0xFF9F1239)))
+  )
+
+  // Emerald on left
+  scope.drawCircle(
+    brush = Brush.radialGradient(listOf(Color(0xFF34D399), Color(0xFF059669))),
+    radius = w * 0.12f,
+    center = Offset(w * 0.24f, h * 0.65f)
+  )
+
+  // Sapphire on right
+  scope.drawRoundRect(
+    brush = Brush.linearGradient(listOf(Color(0xFF38BDF8), Color(0xFF0284C7))),
+    topLeft = Offset(w * 0.66f, h * 0.55f),
+    size = Size(w * 0.2f, w * 0.2f),
+    cornerRadius = CornerRadius(8f, 8f)
+  )
+
+  drawStarBurst(scope, Offset(rx + rS * 0.3f, ry - rS * 0.3f), 14f, Color.White)
+}
+
+// -------------------------------------------------------------
+// Subway Runner 2D Icon (Tracks in perspective with gold coins)
+// -------------------------------------------------------------
+private fun drawSubwayRunnerIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      colors = listOf(Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF334155))
+    )
+  )
+
+  // Perspective railroad tracks
+  val topY = h * 0.28f
+  scope.drawLine(Color(0xFFE2E8F0), Offset(w * 0.44f, topY), Offset(w * 0.12f, h), strokeWidth = 5f)
+  scope.drawLine(Color(0xFFE2E8F0), Offset(w * 0.56f, topY), Offset(w * 0.88f, h), strokeWidth = 5f)
+
+  // Track wooden ties
+  for (i in 1..5) {
+    val progress = i / 6f
+    val tieY = topY + (h - topY) * progress
+    val leftX = w * 0.44f - (w * 0.32f * progress)
+    val rightX = w * 0.56f + (w * 0.32f * progress)
+    scope.drawLine(Color(0xFF78350F), Offset(leftX, tieY), Offset(rightX, tieY), strokeWidth = 4f)
+  }
+
+  // Floating gold coins
+  val coinOffsets = listOf(
+    Offset(w * 0.5f, h * 0.45f) to w * 0.07f,
+    Offset(w * 0.5f, h * 0.64f) to w * 0.09f,
+    Offset(w * 0.5f, h * 0.85f) to w * 0.12f
+  )
+  for ((center, cr) in coinOffsets) {
+    scope.drawCircle(
+      brush = Brush.radialGradient(listOf(Color(0xFFFEF08A), Color(0xFFEAB308), Color(0xFFCA8A04))),
+      radius = cr,
+      center = center
+    )
+    scope.drawCircle(Color.White.copy(alpha = 0.6f), cr * 0.3f, Offset(center.x - cr * 0.3f, center.y - cr * 0.3f))
+  }
+}
+
+// -------------------------------------------------------------
+// Retro NES Classics Icon (8-bit CRT pixel art, star, heart)
+// -------------------------------------------------------------
+private fun drawRetroNesIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(Color(0xFF0A0A0A))
+
+  // CRT Screen Bezel
+  scope.drawRoundRect(
+    brush = Brush.verticalGradient(listOf(Color(0xFF27272A), Color(0xFF18181B))),
+    topLeft = Offset(w * 0.08f, h * 0.12f),
+    size = Size(w * 0.84f, h * 0.76f),
+    cornerRadius = CornerRadius(16f, 16f)
+  )
+
+  // Pixel Star in center
+  drawStarBurst(scope, Offset(w * 0.5f, h * 0.46f), w * 0.2f, Color(0xFFFACC15))
+
+  // Pixel Heart on left
+  scope.drawCircle(Color(0xFFEF4444), w * 0.08f, Offset(w * 0.28f, h * 0.65f))
+
+  // Golden Coin on right
+  scope.drawCircle(
+    brush = Brush.radialGradient(listOf(Color(0xFFFDE047), Color(0xFFEAB308))),
+    radius = w * 0.08f,
+    center = Offset(w * 0.72f, h * 0.65f)
+  )
+}
+
+// -------------------------------------------------------------
+// Bounce Ball Classic Icon (Red glossy ball on cyber brick)
+// -------------------------------------------------------------
+private fun drawBounceIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      colors = listOf(Color(0xFF0369A1), Color(0xFF0F172A), Color(0xFF020617))
+    )
+  )
+
+  // Floating platform brick
+  scope.drawRoundRect(
+    brush = Brush.horizontalGradient(listOf(Color(0xFF3B82F6), Color(0xFF1D4ED8))),
+    topLeft = Offset(w * 0.22f, h * 0.72f),
+    size = Size(w * 0.56f, h * 0.08f),
+    cornerRadius = CornerRadius(6f, 6f)
+  )
+
+  // Glossy Red Bouncing Ball
+  val ballCenter = Offset(w * 0.5f, h * 0.45f)
+  val ballR = w * 0.22f
+  scope.drawCircle(
+    brush = Brush.radialGradient(
+      colors = listOf(Color(0xFFFDA4AF), Color(0xFFE11D48), Color(0xFF9F1239)),
+      center = Offset(ballCenter.x - ballR * 0.3f, ballCenter.y - ballR * 0.35f),
+      radius = ballR * 1.3f
+    ),
+    radius = ballR,
+    center = ballCenter
+  )
+  // Specular gleam
+  scope.drawCircle(
+    color = Color.White.copy(alpha = 0.7f),
+    radius = ballR * 0.26f,
+    center = Offset(ballCenter.x - ballR * 0.3f, ballCenter.y - ballR * 0.35f)
+  )
+}
+
+// -------------------------------------------------------------
+// Cyber Pong 2D Icon (Neon court, dual paddles, fast square puck)
+// -------------------------------------------------------------
+private fun drawPongIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(Color(0xFF060913))
+
+  // Dashed center net
+  for (i in 0..6) {
+    scope.drawLine(
+      color = Color(0xFF10B981).copy(alpha = 0.4f),
+      start = Offset(w * 0.5f, h * 0.15f + i * h * 0.11f),
+      end = Offset(w * 0.5f, h * 0.21f + i * h * 0.11f),
+      strokeWidth = 3f
+    )
+  }
+
+  // Left Cyan Paddle
+  scope.drawRoundRect(
+    color = Color(0xFF06B6D4),
+    topLeft = Offset(w * 0.14f, h * 0.32f),
+    size = Size(w * 0.05f, h * 0.32f),
+    cornerRadius = CornerRadius(4f, 4f)
+  )
+
+  // Right Green Paddle
+  scope.drawRoundRect(
+    color = Color(0xFF10B981),
+    topLeft = Offset(w * 0.81f, h * 0.45f),
+    size = Size(w * 0.05f, h * 0.32f),
+    cornerRadius = CornerRadius(4f, 4f)
+  )
+
+  // Fast Square Puck in motion
+  scope.drawRoundRect(
+    color = Color(0xFFFEF08A),
+    topLeft = Offset(w * 0.46f, h * 0.48f),
+    size = Size(w * 0.08f, w * 0.08f),
+    cornerRadius = CornerRadius(3f, 3f)
+  )
+}
+
+// -------------------------------------------------------------
+// Fruit Ninja Sliced Watermelon Icon
+// -------------------------------------------------------------
+private fun drawFruitNinjaIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(
+      listOf(Color(0xFF2A1208), Color(0xFF140804), Color(0xFF0D0502))
+    )
+  )
+
+  // Watermelon green outer crescent
+  scope.drawCircle(
+    brush = Brush.radialGradient(listOf(Color(0xFF16A34A), Color(0xFF15803D), Color(0xFF14532D))),
+    radius = w * 0.32f,
+    center = Offset(w * 0.45f, h * 0.52f)
+  )
+  // White rind layer
+  scope.drawCircle(
+    color = Color(0xFFDCFCE7),
+    radius = w * 0.28f,
+    center = Offset(w * 0.45f, h * 0.52f)
+  )
+  // Juicy Red flesh
+  scope.drawCircle(
+    brush = Brush.radialGradient(listOf(Color(0xFFEF4444), Color(0xFFB91C1C))),
+    radius = w * 0.26f,
+    center = Offset(w * 0.45f, h * 0.52f)
+  )
+  // Seeds
+  scope.drawCircle(Color(0xFF1F2937), w * 0.018f, Offset(w * 0.40f, h * 0.46f))
+  scope.drawCircle(Color(0xFF1F2937), w * 0.018f, Offset(w * 0.50f, h * 0.48f))
+  scope.drawCircle(Color(0xFF1F2937), w * 0.018f, Offset(w * 0.44f, h * 0.58f))
+
+  // Slicing blade slash effect
+  val slashPath = Path().apply {
+    moveTo(w * 0.15f, h * 0.82f)
+    lineTo(w * 0.85f, h * 0.22f)
+  }
+  scope.drawPath(
+    path = slashPath,
+    color = Color.White,
+    style = Stroke(width = 6f)
+  )
+  scope.drawPath(
+    path = slashPath,
+    color = Color(0xFF67E8F9).copy(alpha = 0.5f),
+    style = Stroke(width = 14f)
+  )
+}
+
+// -------------------------------------------------------------
+// Duck Hunt Retro Arcade Icon
+// -------------------------------------------------------------
+private fun drawDuckHuntIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  // 8-bit sky blue background
+  scope.drawRect(
+    brush = Brush.verticalGradient(listOf(Color(0xFF38BDF8), Color(0xFF0284C7)))
+  )
+  // Retro green grass at bottom
+  scope.drawRect(
+    color = Color(0xFF16A34A),
+    topLeft = Offset(0f, h * 0.72f),
+    size = Size(w, h * 0.28f)
+  )
+
+  // Flying Duck Silhouette
+  val duckCenter = Offset(w * 0.42f, h * 0.42f)
+  scope.drawCircle(Color(0xFF15803D), w * 0.09f, Offset(duckCenter.x + w * 0.12f, duckCenter.y - h * 0.04f)) // Green head
+  scope.drawCircle(Color(0xFFF97316), w * 0.05f, Offset(duckCenter.x + w * 0.20f, duckCenter.y - h * 0.04f)) // Orange beak
+  scope.drawOval(Color(0xFF78350F), Offset(duckCenter.x - w * 0.15f, duckCenter.y - h * 0.08f), Size(w * 0.28f, h * 0.18f)) // Brown body
+  // Wing
+  val wingPath = Path().apply {
+    moveTo(duckCenter.x - w * 0.05f, duckCenter.y)
+    lineTo(duckCenter.x, duckCenter.y - h * 0.18f)
+    lineTo(duckCenter.x + w * 0.06f, duckCenter.y)
+    close()
+  }
+  scope.drawPath(wingPath, Color(0xFF451A03))
+
+  // Red sniper crosshair
+  val crossCenter = Offset(w * 0.65f, h * 0.38f)
+  val crossR = w * 0.16f
+  scope.drawCircle(Color(0xFFEF4444), crossR, crossCenter, style = Stroke(width = 4f))
+  scope.drawLine(Color(0xFFEF4444), Offset(crossCenter.x - crossR * 1.3f, crossCenter.y), Offset(crossCenter.x + crossR * 1.3f, crossCenter.y), strokeWidth = 3f)
+  scope.drawLine(Color(0xFFEF4444), Offset(crossCenter.x, crossCenter.y - crossR * 1.3f), Offset(crossCenter.x, crossCenter.y + crossR * 1.3f), strokeWidth = 3f)
+}
+
+// -------------------------------------------------------------
+// Minesweeper Grid & Bomb Icon
+// -------------------------------------------------------------
+private fun drawMinesweeperIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(Color(0xFF1E293B))
+
+  // Beveled grid cells
+  val cellSize = w * 0.24f
+  val startX = w * 0.14f
+  val startY = h * 0.22f
+
+  for (r in 0..1) {
+    for (c in 0..2) {
+      val cellTopLeft = Offset(startX + c * (cellSize + 6f), startY + r * (cellSize + 6f))
+      scope.drawRoundRect(
+        color = Color(0xFF475569),
+        topLeft = cellTopLeft,
+        size = Size(cellSize, cellSize),
+        cornerRadius = CornerRadius(4f, 4f)
+      )
+    }
+  }
+
+  // Classic Round Mine in center cell
+  val mineCenter = Offset(startX + cellSize + 3f + cellSize * 0.5f, startY + cellSize * 0.5f)
+  val mineR = cellSize * 0.32f
+  scope.drawCircle(Color(0xFF0F172A), mineR, mineCenter)
+  // Spikes
+  for (i in 0..7) {
+    val angle = (i * Math.PI / 4.0).toFloat()
+    val sx = mineCenter.x + Math.cos(angle.toDouble()).toFloat() * mineR * 1.4f
+    val sy = mineCenter.y + Math.sin(angle.toDouble()).toFloat() * mineR * 1.4f
+    scope.drawCircle(Color(0xFF0F172A), mineR * 0.2f, Offset(sx, sy))
+  }
+  scope.drawCircle(Color.White, mineR * 0.22f, Offset(mineCenter.x - mineR * 0.3f, mineCenter.y - mineR * 0.3f))
+
+  // Red Flag in right cell
+  val flagBaseX = startX + 2 * (cellSize + 6f) + cellSize * 0.4f
+  val flagBaseY = startY + cellSize * 0.8f
+  scope.drawLine(Color(0xFF0F172A), Offset(flagBaseX, flagBaseY), Offset(flagBaseX, startY + cellSize * 0.2f), strokeWidth = 5f)
+  val flagPath = Path().apply {
+    moveTo(flagBaseX, startY + cellSize * 0.2f)
+    lineTo(flagBaseX + cellSize * 0.4f, startY + cellSize * 0.35f)
+    lineTo(flagBaseX, startY + cellSize * 0.5f)
+    close()
+  }
+  scope.drawPath(flagPath, Color(0xFFEF4444))
+}
+
+// -------------------------------------------------------------
+// Simon Says 4-Color Disc Icon
+// -------------------------------------------------------------
+private fun drawSimonSaysIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(Color(0xFF0B0F19))
+
+  val center = Offset(w * 0.5f, h * 0.5f)
+  val outerR = w * 0.36f
+
+  // 4 Quadrants
+  // Top-Left: Green
+  scope.drawArc(
+    brush = Brush.radialGradient(listOf(Color(0xFF4ADE80), Color(0xFF16A34A))),
+    startAngle = 180f,
+    sweepAngle = 86f,
+    useCenter = true,
+    topLeft = Offset(center.x - outerR, center.y - outerR),
+    size = Size(outerR * 2, outerR * 2)
+  )
+  // Top-Right: Red
+  scope.drawArc(
+    brush = Brush.radialGradient(listOf(Color(0xFFF87171), Color(0xFFDC2626))),
+    startAngle = 270f,
+    sweepAngle = 86f,
+    useCenter = true,
+    topLeft = Offset(center.x - outerR, center.y - outerR),
+    size = Size(outerR * 2, outerR * 2)
+  )
+  // Bottom-Right: Yellow
+  scope.drawArc(
+    brush = Brush.radialGradient(listOf(Color(0xFFFDE047), Color(0xFFCA8A04))),
+    startAngle = 0f,
+    sweepAngle = 86f,
+    useCenter = true,
+    topLeft = Offset(center.x - outerR, center.y - outerR),
+    size = Size(outerR * 2, outerR * 2)
+  )
+  // Bottom-Left: Blue
+  scope.drawArc(
+    brush = Brush.radialGradient(listOf(Color(0xFF60A5FA), Color(0xFF2563EB))),
+    startAngle = 90f,
+    sweepAngle = 86f,
+    useCenter = true,
+    topLeft = Offset(center.x - outerR, center.y - outerR),
+    size = Size(outerR * 2, outerR * 2)
+  )
+
+  // Black center hub
+  scope.drawCircle(Color(0xFF0F172A), outerR * 0.44f, center)
+  scope.drawCircle(Color(0xFF334155), outerR * 0.38f, center)
+  scope.drawCircle(Color(0xFF0F172A), outerR * 0.28f, center)
+}
+
+// -------------------------------------------------------------
+// Astray 3D Labyrinth Maze Icon
+// -------------------------------------------------------------
+private fun drawAstrayMazeIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(listOf(Color(0xFF0F172A), Color(0xFF020617)))
+  )
+
+  // Isometric neon labyrinth walls
+  val wallBrush = Brush.linearGradient(listOf(Color(0xFF38BDF8), Color(0xFF0284C7)))
+  scope.drawLine(wallBrush, Offset(w * 0.2f, h * 0.3f), Offset(w * 0.5f, h * 0.15f), strokeWidth = 8f)
+  scope.drawLine(wallBrush, Offset(w * 0.5f, h * 0.15f), Offset(w * 0.8f, h * 0.3f), strokeWidth = 8f)
+  scope.drawLine(wallBrush, Offset(w * 0.2f, h * 0.5f), Offset(w * 0.5f, h * 0.35f), strokeWidth = 8f)
+  scope.drawLine(wallBrush, Offset(w * 0.5f, h * 0.35f), Offset(w * 0.8f, h * 0.5f), strokeWidth = 8f)
+  scope.drawLine(wallBrush, Offset(w * 0.2f, h * 0.7f), Offset(w * 0.5f, h * 0.55f), strokeWidth = 8f)
+  scope.drawLine(wallBrush, Offset(w * 0.5f, h * 0.55f), Offset(w * 0.8f, h * 0.7f), strokeWidth = 8f)
+
+  // Vertical connect lines
+  scope.drawLine(wallBrush, Offset(w * 0.5f, h * 0.15f), Offset(w * 0.5f, h * 0.55f), strokeWidth = 6f)
+
+  // Shiny chrome sphere rolling in maze
+  val ballCenter = Offset(w * 0.52f, h * 0.48f)
+  val ballR = w * 0.12f
+  scope.drawCircle(
+    brush = Brush.radialGradient(
+      listOf(Color(0xFFFFFFFF), Color(0xFF94A3B8), Color(0xFF475569)),
+      center = Offset(ballCenter.x - ballR * 0.3f, ballCenter.y - ballR * 0.3f),
+      radius = ballR * 1.2f
+    ),
+    radius = ballR,
+    center = ballCenter
+  )
+}
+
+// -------------------------------------------------------------
+// WebGL 3D Geometry Cube Icon
+// -------------------------------------------------------------
+private fun drawWebGlCubeIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(Color(0xFF030712))
+
+  val cx = w * 0.5f
+  val cy = h * 0.5f
+  val s = w * 0.28f
+
+  // Isometric Top Face
+  val topPath = Path().apply {
+    moveTo(cx, cy - s)
+    lineTo(cx + s * 0.86f, cy - s * 0.5f)
+    lineTo(cx, cy)
+    lineTo(cx - s * 0.86f, cy - s * 0.5f)
+    close()
+  }
+  scope.drawPath(
+    path = topPath,
+    brush = Brush.linearGradient(listOf(Color(0xFF38BDF8), Color(0xFF0284C7)))
+  )
+
+  // Left Face
+  val leftPath = Path().apply {
+    moveTo(cx - s * 0.86f, cy - s * 0.5f)
+    lineTo(cx, cy)
+    lineTo(cx, cy + s)
+    lineTo(cx - s * 0.86f, cy + s * 0.5f)
+    close()
+  }
+  scope.drawPath(
+    path = leftPath,
+    brush = Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF4338CA)))
+  )
+
+  // Right Face
+  val rightPath = Path().apply {
+    moveTo(cx, cy)
+    lineTo(cx + s * 0.86f, cy - s * 0.5f)
+    lineTo(cx + s * 0.86f, cy + s * 0.5f)
+    lineTo(cx, cy + s)
+    close()
+  }
+  scope.drawPath(
+    path = rightPath,
+    brush = Brush.linearGradient(listOf(Color(0xFFA855F7), Color(0xFF7E22CE)))
+  )
+
+  // Glowing wireframe borders
+  scope.drawPath(topPath, Color.White.copy(alpha = 0.6f), style = Stroke(width = 3f))
+  scope.drawPath(leftPath, Color.White.copy(alpha = 0.6f), style = Stroke(width = 3f))
+  scope.drawPath(rightPath, Color.White.copy(alpha = 0.6f), style = Stroke(width = 3f))
+}
+
+// -------------------------------------------------------------
+// Color Blast Neon Shockwave Icon
+// -------------------------------------------------------------
+private fun drawColorBlastIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(Color(0xFF05050A))
+
+  val center = Offset(w * 0.5f, h * 0.5f)
+  // Radial shockwave rings
+  scope.drawCircle(Color(0xFFEC4899).copy(alpha = 0.35f), w * 0.38f, center, style = Stroke(width = 8f))
+  scope.drawCircle(Color(0xFFF59E0B).copy(alpha = 0.50f), w * 0.28f, center, style = Stroke(width = 10f))
+  scope.drawCircle(Color(0xFF06B6D4).copy(alpha = 0.70f), w * 0.18f, center, style = Stroke(width = 12f))
+
+  // Blasting particles
+  val colors = listOf(Color(0xFFEC4899), Color(0xFFF59E0B), Color(0xFF10B981), Color(0xFF3B82F6), Color(0xFFA855F7))
+  for (i in 0..11) {
+    val angle = (i * Math.PI / 6.0).toFloat()
+    val dist = w * 0.30f
+    val px = center.x + Math.cos(angle.toDouble()).toFloat() * dist
+    val py = center.y + Math.sin(angle.toDouble()).toFloat() * dist
+    scope.drawCircle(colors[i % colors.size], w * 0.035f, Offset(px, py))
+  }
+}
+
+// -------------------------------------------------------------
+// Endless Runner / Doodle Jumper Icon
+// -------------------------------------------------------------
+private fun drawEndlessRunnerIcon(scope: DrawScope) {
+  val w = scope.size.width
+  val h = scope.size.height
+
+  scope.drawRect(
+    brush = Brush.verticalGradient(listOf(Color(0xFF1E1B4B), Color(0xFF0F172A)))
+  )
+
+  // Floating platforms
+  val platBrush = Brush.horizontalGradient(listOf(Color(0xFF22C55E), Color(0xFF16A34A)))
+  scope.drawRoundRect(platBrush, Offset(w * 0.15f, h * 0.75f), Size(w * 0.32f, h * 0.05f), CornerRadius(6f, 6f))
+  scope.drawRoundRect(platBrush, Offset(w * 0.55f, h * 0.55f), Size(w * 0.32f, h * 0.05f), CornerRadius(6f, 6f))
+  scope.drawRoundRect(platBrush, Offset(w * 0.25f, h * 0.32f), Size(w * 0.32f, h * 0.05f), CornerRadius(6f, 6f))
+
+  // Jumper creature (cute green alien with snout)
+  val charCenter = Offset(w * 0.40f, h * 0.22f)
+  scope.drawCircle(
+    brush = Brush.radialGradient(listOf(Color(0xFF86EFAC), Color(0xFF22C55E))),
+    radius = w * 0.12f,
+    center = charCenter
+  )
+  // Big cute cartoon eyes
+  scope.drawCircle(Color.White, w * 0.035f, Offset(charCenter.x - w * 0.04f, charCenter.y - h * 0.03f))
+  scope.drawCircle(Color(0xFF0F172A), w * 0.018f, Offset(charCenter.x - w * 0.04f, charCenter.y - h * 0.03f))
+  scope.drawCircle(Color.White, w * 0.035f, Offset(charCenter.x + w * 0.04f, charCenter.y - h * 0.03f))
+  scope.drawCircle(Color(0xFF0F172A), w * 0.018f, Offset(charCenter.x + w * 0.04f, charCenter.y - h * 0.03f))
+
+  // Bounce spring particle lines
+  scope.drawLine(Color(0xFFFDE047), Offset(charCenter.x - w * 0.05f, charCenter.y + h * 0.08f), Offset(charCenter.x - w * 0.08f, charCenter.y + h * 0.14f), strokeWidth = 4f)
+  scope.drawLine(Color(0xFFFDE047), Offset(charCenter.x + w * 0.05f, charCenter.y + h * 0.08f), Offset(charCenter.x + w * 0.08f, charCenter.y + h * 0.14f), strokeWidth = 4f)
+}
+
+

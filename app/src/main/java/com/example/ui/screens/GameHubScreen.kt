@@ -221,7 +221,7 @@ fun GameHubScreen(
                 .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
               Text(
-                text = "10 GAMES",
+                text = "UNLIMITED GAMES",
                 color = Color.Black,
                 fontWeight = FontWeight.Black,
                 fontSize = 11.sp

@@ -2,6 +2,7 @@ package com.example.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
 @Entity(tableName = "games")
 data class GameItem(
@@ -31,7 +32,7 @@ data class GameItem(
   val isFavorite: Boolean = false,
   val lastPlayed: Long = 0L,
   val candyColorHex: Long = 0xFFFF3366 // Vibrant card candy tint
-)
+) : Serializable
 
 enum class GameDifficulty(val label: String) {
   EASY("EASY"),

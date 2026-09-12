@@ -24,24 +24,26 @@ class MainActivity : ComponentActivity() {
     // Background WebView Pre-warming for instant load (Zero Buffering)
     try {
       prewarmedWebView1 = WebView(applicationContext).apply {
+        @Suppress("DEPRECATION")
         settings.apply {
           javaScriptEnabled = true
           domStorageEnabled = true
           databaseEnabled = true
-          cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+          cacheMode = WebSettings.LOAD_DEFAULT
           mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
-        loadUrl("https://pub.gamezop.com/")
+        loadUrl("https://poki.com")
       }
       prewarmedWebView2 = WebView(applicationContext).apply {
+        @Suppress("DEPRECATION")
         settings.apply {
           javaScriptEnabled = true
           domStorageEnabled = true
           databaseEnabled = true
-          cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+          cacheMode = WebSettings.LOAD_DEFAULT
           mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
-        loadUrl("https://games.gamepix.com/")
+        loadUrl("https://www.gamezop.com")
       }
     } catch (_: Exception) {}
 

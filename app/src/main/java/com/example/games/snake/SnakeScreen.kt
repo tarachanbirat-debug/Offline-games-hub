@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -301,9 +301,9 @@ fun SnakeScreen(
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
         DPadArrow(Icons.Default.KeyboardArrowUp) { setDir(SnakeDir.UP) }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-          DPadArrow(Icons.Default.KeyboardArrowLeft) { setDir(SnakeDir.LEFT) }
+          DPadArrow(Icons.AutoMirrored.Filled.KeyboardArrowLeft) { setDir(SnakeDir.LEFT) }
           DPadArrow(Icons.Default.KeyboardArrowDown) { setDir(SnakeDir.DOWN) }
-          DPadArrow(Icons.Default.KeyboardArrowRight) { setDir(SnakeDir.RIGHT) }
+          DPadArrow(Icons.AutoMirrored.Filled.KeyboardArrowRight) { setDir(SnakeDir.RIGHT) }
         }
       }
     }

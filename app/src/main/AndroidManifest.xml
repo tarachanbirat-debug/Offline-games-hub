@@ -20,6 +20,9 @@
         android:theme="@style/Theme.MyApplication">
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize|uiMode"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="unspecified"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.MyApplication">
@@ -32,7 +35,7 @@
         <activity
             android:name=".GamePlayerActivity"
             android:exported="false"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize|uiMode"
             android:hardwareAccelerated="true"
             android:theme="@style/Theme.MyApplication" />
     </application>

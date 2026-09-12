@@ -1,7 +1,8 @@
 package com.example.ui.screens
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
+import android.content.res.Configuration
+import android.os.Message
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewGroup
@@ -12,46 +13,146 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
+
+data class CloudPortal(
+    val id: String,
+    val title: String,
+    val url: String,
+    val iconGlyph: String,
+    val accentColor: Color
+)
+
+// SECTION 2: Tabs Priority (Poki -> Gamezop -> CrazyGames)
+val CloudPortals = listOf(
+    CloudPortal(
+        id = "poki",
+        title = "Poki",
+        url = "https://poki.com",
+        iconGlyph = "🎮",
+        accentColor = Color(0xFF06B6D4)
+    ),
+    CloudPortal(
+        id = "gamezop",
+        title = "Gamezop",
+        url = "https://www.gamezop.com",
+        iconGlyph = "⚡",
+        accentColor = Color(0xFFEC4899)
+    ),
+    CloudPortal(
+        id = "crazygames",
+        title = "CrazyGames",
+        url = "https://www.crazygames.com",
+        iconGlyph = "🕹️",
+        accentColor = Color(0xFF6366F1)
+    )
+)
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun CloudArcadeScreen(
     onGameActiveChanged: (Boolean) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val view = LocalView.current
+    val configuration = LocalConfiguration.current
 
-    // SECTION 2.1: Portal Endpoints
-    val tabs = listOf("CrazyGames", "Gamezop", "Poki")
-    val urls = listOf(
-        "https://www.crazygames.com",
-        "https://www.gamezop.com",
-        "https://poki.com"
-    )
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    var selectedPortalIndex by rememberSaveable { mutableIntStateOf(0) }
+    val activePortal = CloudPortals[selectedPortalIndex]
+    val activeUrl = activePortal.url
+
+    var lastLoadedPortalIndex by rememberSaveable { mutableIntStateOf(-1) }
     var activeWebView by remember { mutableStateOf<WebView?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
+    var canGoBack by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
     var loadProgress by remember { mutableIntStateOf(0) }
 
-    // SECTION 2.5: Navigation Safety with BackHandler
-    BackHandler(enabled = activeWebView?.canGoBack() == true) {
-        activeWebView?.goBack()
+    // SECTION 3: Smart Auto-Minimizing State
+    var isManuallyCollapsed by rememberSaveable { mutableStateOf(false) }
+    val isAutoCollapsed = isLandscape || isManuallyCollapsed
+
+    // Notify parent to hide Scaffold bottom navigation when collapsed or in landscape
+    LaunchedEffect(isAutoCollapsed) {
+        onGameActiveChanged(isAutoCollapsed)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            onGameActiveChanged(false)
+            activeWebView?.apply {
+                stopLoading()
+                pauseTimers()
+                loadUrl("about:blank")
+                destroy()
+            }
+            activeWebView = null
+        }
+    }
+
+    // Safe BackHandler: back inside game/portal first before leaving
+    BackHandler(enabled = true) {
+        if (activeWebView?.canGoBack() == true) {
+            activeWebView?.goBack()
+        } else if (isManuallyCollapsed) {
+            isManuallyCollapsed = false
+        } else if (selectedPortalIndex != 0) {
+            selectedPortalIndex = 0
+        }
     }
 
     Box(
@@ -59,180 +160,254 @@ fun CloudArcadeScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Portal Selector Tabs
-            ScrollableTabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = Color(0xFF1E293B),
-                contentColor = Color.White,
-                edgePadding = 16.dp,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                        color = Color(0xFF10B981)
+        // ====================================================================
+        // 60 FPS CHROME-GRADE WEBVIEW ENGINE
+        // ====================================================================
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { ctx ->
+                WebView(ctx).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                }
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = {
-                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                            selectedTabIndex = index
-                        },
-                        text = {
-                            Text(
-                                text = title,
-                                color = if (selectedTabIndex == index) Color(0xFF10B981) else Color(0xFF94A3B8),
-                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Medium
-                            )
+                    setLayerType(View.LAYER_TYPE_HARDWARE, null)
+                    setBackgroundColor(android.graphics.Color.BLACK)
+
+                    // Essential for 3D game assets, cross-domain scripts, and session saves
+                    val cookieManager = CookieManager.getInstance()
+                    cookieManager.setAcceptCookie(true)
+                    cookieManager.setAcceptThirdPartyCookies(this, true)
+
+                    with(settings) {
+                        javaScriptEnabled = true
+                        domStorageEnabled = true
+                        databaseEnabled = true
+                        setSupportMultipleWindows(true)
+                        javaScriptCanOpenWindowsAutomatically = true
+                        allowFileAccess = true
+                        allowContentAccess = true
+                        useWideViewPort = true
+                        loadWithOverviewMode = true
+                        setSupportZoom(false)
+                        displayZoomControls = false
+                        mediaPlaybackRequiresUserGesture = false
+                        mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                        cacheMode = WebSettings.LOAD_DEFAULT
+                        userAgentString =
+                            "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                    }
+
+                    // CRITICAL: Allows Poki & Gamezop game cards to launch inside the player on tap
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                            super.onProgressChanged(view, newProgress)
+                            loadProgress = newProgress
+                            isLoading = newProgress < 100
+                            canGoBack = view?.canGoBack() == true
                         }
-                    )
-                }
-            }
 
-            // Web Container
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-                    .background(Color.Black)
-            ) {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { ctx ->
-                        WebView(ctx).apply {
-                            // SECTION 2.2: Performance & Hardware Acceleration
-                            setLayerType(View.LAYER_TYPE_HARDWARE, null)
-                            layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
-                            )
-                            setBackgroundColor(android.graphics.Color.BLACK)
-
-                            // SECTION 2.3: WebSettings Configuration
-                            with(settings) {
-                                javaScriptEnabled = true
-                                domStorageEnabled = true
-                                databaseEnabled = true
-                                setSupportZoom(false)
-                                builtInZoomControls = false
-                                displayZoomControls = false
-                                cacheMode = WebSettings.LOAD_DEFAULT
-                                mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                                useWideViewPort = true
-                                loadWithOverviewMode = true
-                                userAgentString =
-                                    "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-                                allowFileAccess = true
-                                mediaPlaybackRequiresUserGesture = false
-                                javaScriptCanOpenWindowsAutomatically = true
+                        override fun onCreateWindow(
+                            view: WebView?,
+                            isDialog: Boolean,
+                            isUserGesture: Boolean,
+                            resultMsg: Message?
+                        ): Boolean {
+                            val href = view?.handler?.obtainMessage()
+                            view?.requestFocusNodeHref(href)
+                            val url = href?.data?.getString("url")
+                            if (!url.isNullOrEmpty()) {
+                                view.loadUrl(url)
                             }
-                            CookieManager.getInstance().setAcceptCookie(true)
-                            CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-
-                            webChromeClient = object : WebChromeClient() {
-                                override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                                    loadProgress = newProgress
-                                    isLoading = newProgress < 85
-                                }
-
-                                override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
-                                    super.onShowCustomView(view, callback)
-                                    onGameActiveChanged(true)
-                                }
-
-                                override fun onHideCustomView() {
-                                    super.onHideCustomView()
-                                    onGameActiveChanged(false)
-                                }
-                            }
-
-                            // SECTION 2.4: Viewport Normalization
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                                    super.onPageStarted(view, url, favicon)
-                                    isLoading = true
-                                }
-
-                                override fun onPageFinished(view: WebView?, url: String?) {
-                                    super.onPageFinished(view, url)
-                                    isLoading = false
-
-                                    view?.evaluateJavascript(
-                                        """
-                                        (function() {
-                                            var style = document.createElement('style');
-                                            style.innerHTML = `
-                                                html, body {
-                                                    margin: 0 !important;
-                                                    padding: 0 !important;
-                                                    overflow-x: hidden !important;
-                                                }
-                                                canvas, iframe, #game-container, #canvas, .game-canvas {
-                                                    max-width: 100vw !important;
-                                                    max-height: 100vh !important;
-                                                    object-fit: contain !important;
-                                                    margin: auto !important;
-                                                }
-                                            `;
-                                            document.head.appendChild(style);
-                                        })();
-                                        """.trimIndent(),
-                                        null
-                                    )
-                                }
-
-                                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                                    val url = request?.url.toString()
-                                    if (url.startsWith("market://") ||
-                                        url.startsWith("https://play.google.com/") ||
-                                        url.startsWith("intent://")
-                                    ) {
-                                        return true // Intercept app store redirects
-                                    }
-                                    return false
-                                }
-                            }
-
-                            loadUrl(urls[selectedTabIndex])
-                            activeWebView = this
-                        }
-                    },
-                    update = { webView ->
-                        activeWebView = webView
-                        if (webView.url != urls[selectedTabIndex]) {
-                            webView.loadUrl(urls[selectedTabIndex])
+                            val transport = resultMsg?.obj as? WebView.WebViewTransport
+                            transport?.webView = view
+                            resultMsg?.sendToTarget()
+                            return true
                         }
                     }
-                )
 
-                // Neon progress indicator while loading
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xD9000000)),
-                        contentAlignment = Alignment.Center
+                    webViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            return false
+                        }
+
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            super.onPageFinished(view, url)
+                            canGoBack = view?.canGoBack() == true
+                            val js = """
+                                javascript:(function() {
+                                    document.body.style.margin = '0';
+                                    document.body.style.padding = '0';
+                                })()
+                            """.trimIndent()
+                            view?.evaluateJavascript(js, null)
+                            view?.requestLayout()
+                            view?.invalidate()
+                        }
+                    }
+
+                    loadUrl(activeUrl)
+                    lastLoadedPortalIndex = selectedPortalIndex
+                    activeWebView = this
+                }
+            },
+            update = { webView ->
+                activeWebView = webView
+                if (lastLoadedPortalIndex != selectedPortalIndex) {
+                    lastLoadedPortalIndex = selectedPortalIndex
+                    webView.loadUrl(activeUrl)
+                }
+            }
+        )
+
+        // Web Loading Progress Bar
+        if (isLoading) {
+            LinearProgressIndicator(
+                progress = { loadProgress / 100f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .align(Alignment.TopCenter)
+                    .zIndex(150f),
+                color = activePortal.accentColor,
+                trackColor = Color.Transparent
+            )
+        }
+
+        // ====================================================================
+        // SECTION 3: SMART AUTO-MINIMIZING TOP BAR (ZERO GAME OCCLUSION)
+        // ====================================================================
+
+        // (A) Normal Portrait State: Sleek 44dp height Tab Row
+        AnimatedVisibility(
+            visible = !isAutoCollapsed,
+            enter = fadeIn() + slideInVertically { -it },
+            exit = fadeOut() + slideOutVertically { -it },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .zIndex(100f)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF0F172A).copy(alpha = 0.95f))
+                    .statusBarsPadding()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp)
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Back in Portal button (if canGoBack)
+                    IconButton(
+                        onClick = {
+                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                            if (activeWebView?.canGoBack() == true) {
+                                activeWebView?.goBack()
+                            }
+                        },
+                        enabled = canGoBack,
+                        modifier = Modifier.size(36.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go Back",
+                            tint = if (canGoBack) Color.White else Color.White.copy(alpha = 0.25f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    // 3 Primary Portal Tabs: Poki (Priority 1) | Gamezop (Priority 2) | CrazyGames (Priority 3)
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CloudPortals.forEachIndexed { index, portal ->
+                            val isSelected = selectedPortalIndex == index
+                            Box(
+                                modifier = Modifier
+                                    .padding(horizontal = 3.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (isSelected) portal.accentColor.copy(alpha = 0.25f)
+                                        else Color.White.copy(alpha = 0.05f)
+                                    )
+                                    .border(
+                                        width = if (isSelected) 1.dp else 0.dp,
+                                        color = if (isSelected) portal.accentColor else Color.Transparent,
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable {
+                                        if (selectedPortalIndex != index) {
+                                            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                            selectedPortalIndex = index
+                                        }
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = portal.iconGlyph,
+                                        fontSize = 12.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = portal.title,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.7f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Quick Actions: Reload & Fullscreen Collapse
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = {
+                                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                activeWebView?.reload()
+                            },
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            CircularProgressIndicator(
-                                progress = { loadProgress / 100f },
-                                color = Color(0xFF10B981),
-                                trackColor = Color(0x3310B981),
-                                modifier = Modifier.size(52.dp)
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Reload",
+                                tint = Color.White.copy(alpha = 0.8f),
+                                modifier = Modifier.size(17.dp)
                             )
-                            Spacer(modifier = Modifier.height(14.dp))
-                            Text(
-                                text = "Loading Cloud Arcade ($loadProgress%)",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
+                        }
+
+                        IconButton(
+                            onClick = {
+                                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                isManuallyCollapsed = true
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Fullscreen,
+                                contentDescription = "Enter Fullscreen Mode",
+                                tint = Color(0xFF38BDF8),
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
@@ -240,26 +415,107 @@ fun CloudArcadeScreen(
             }
         }
 
-        // Top-Right Refresh Button
-        IconButton(
-            onClick = {
-                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                activeWebView?.reload()
-            },
+        // (B) In-Game / Landscape State: Ultra-Slim 24dp Frosted Dark Pill Bar (Zero Game Occlusion)
+        AnimatedVisibility(
+            visible = isAutoCollapsed,
+            enter = fadeIn() + slideInVertically { -it },
+            exit = fadeOut() + slideOutVertically { -it },
             modifier = Modifier
-                .align(Alignment.TopEnd)
+                .align(Alignment.TopCenter)
                 .statusBarsPadding()
-                .padding(8.dp)
-                .size(34.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xCC1E293B))
+                .padding(top = 4.dp)
+                .zIndex(100f)
         ) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "Reload",
-                tint = Color.White,
-                modifier = Modifier.size(18.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .height(24.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.75f))
+                    .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // Compact Switcher Tabs
+                CloudPortals.forEachIndexed { index, portal ->
+                    val isSelected = selectedPortalIndex == index
+                    Text(
+                        text = "${portal.iconGlyph} ${portal.title}",
+                        fontSize = 10.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) portal.accentColor else Color.White.copy(alpha = 0.6f),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                if (selectedPortalIndex != index) {
+                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                    selectedPortalIndex = index
+                                }
+                            }
+                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                    )
+                    if (index < CloudPortals.size - 1) {
+                        Text(
+                            text = "|",
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.2f),
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        )
+                    }
+                }
+
+                // If collapsed manually in portrait, allow restore button
+                if (!isLandscape && isManuallyCollapsed) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "|",
+                        fontSize = 10.sp,
+                        color = Color.White.copy(alpha = 0.2f)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.FullscreenExit,
+                        contentDescription = "Exit Fullscreen",
+                        tint = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier
+                            .size(14.dp)
+                            .clickable {
+                                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                isManuallyCollapsed = false
+                            }
+                    )
+                }
+            }
+        }
+
+        // Floating 30dp Switcher Handle (if user wants to quickly navigate back inside the game)
+        if (isAutoCollapsed && canGoBack) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(start = 8.dp, top = 4.dp)
+                    .zIndex(100f)
+            ) {
+                IconButton(
+                    onClick = {
+                        view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                        activeWebView?.goBack()
+                    },
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.70f))
+                        .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White,
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
         }
     }
 }

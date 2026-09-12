@@ -140,7 +140,7 @@ class HTML5Adapter : BuildAdapter {
     )
     return GamePackageMeta(
       packageId = packageId,
-      title = packageId.replace("-", " ").capitalize(),
+      title = packageId.replace("-", " ").replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
       version = "1.0.0",
       technology = "HTML5 / Canvas",
       entryPoint = "index.html",

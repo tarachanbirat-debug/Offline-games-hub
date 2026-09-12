@@ -83,7 +83,7 @@ class VaultDiscoveryEngine {
 
     val inspectionTarget = matched ?: RepoInspection(
       repoUrl = if (urlOrQuery.startsWith("http")) urlOrQuery else "https://github.com/open-vault/$urlOrQuery",
-      repoName = urlOrQuery.substringAfterLast("/").replace("-", " ").capitalize(),
+      repoName = urlOrQuery.substringAfterLast("/").replace("-", " ").replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
       author = urlOrQuery.substringBeforeLast("/").substringAfterLast("/").ifEmpty { "Community" },
       licenseType = if (urlOrQuery.contains("gpl", ignoreCase = true)) "GPL-3.0" else "MIT",
       rawFiles = listOf("index.html", "game.js", "style.css", "assets/sprites.png", "manifest.json"),

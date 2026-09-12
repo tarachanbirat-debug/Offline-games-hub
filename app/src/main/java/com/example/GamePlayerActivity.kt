@@ -196,6 +196,7 @@ private fun GamePlayerScreen(
           setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
           // Required Game Engine WebSettings
+          @Suppress("DEPRECATION")
           settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true

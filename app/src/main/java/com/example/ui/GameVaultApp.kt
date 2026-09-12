@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -171,11 +173,11 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
   var selectedThemeId by remember { mutableStateOf(repository.getSelectedThemeId()) }
   var showSplash by rememberSaveable { mutableStateOf(true) }
   var currentTab by remember { mutableStateOf(if (switchToOffline || !initialIsOnline) VaultTab.OFFLINE_VAULT else VaultTab.CLOUD_ARCADE) }
-  var activeGame by remember { mutableStateOf<GameItem?>(null) }
+  var activeGame by rememberSaveable { mutableStateOf<GameItem?>(null) }
   var previewGame by remember { mutableStateOf<GameItem?>(null) }
 
   // SECTION 1.1: Detect orientation and active game state
-  var isGameActive by remember { mutableStateOf(false) }
+  var isGameActive by rememberSaveable { mutableStateOf(false) }
   val hideChrome = (orientation == Configuration.ORIENTATION_LANDSCAPE) || isGameActive || (activeGame != null)
 
   // SECTION 1.3: Window Insets & Immersive Mode
@@ -200,6 +202,13 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
     }
   }
 
+  // Ensure orientation restores smoothly to portrait when closing a game
+  DisposableEffect(isGameActive, activeGame) {
+    onDispose {
+      activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+  }
+
   // Ensure lo-fi stops when leaving composable
   DisposableEffect(Unit) {
     onDispose {
@@ -220,6 +229,12 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
     }
     lofiEngine.startLofi(mood)
 
+    if (game.orientation.equals("LANDSCAPE", ignoreCase = true)) {
+      activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+    } else {
+      activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+
     if (game.entryPoint.isNotBlank() && (game.entryPoint.startsWith("file://") || game.entryPoint.startsWith("http"))) {
       GamePlayerActivity.launch(
         context = context,
@@ -230,6 +245,7 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
       )
     } else {
       activeGame = game
+      isGameActive = true
     }
   }
 
@@ -239,6 +255,7 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
     hapticEngine.vibrateTap()
     activeGame = null
     isGameActive = false
+    activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
   }
 
   GameVaultTheme(presetId = selectedThemeId) {
@@ -427,7 +444,7 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
               containerColor = MaterialTheme.colorScheme.background,
               contentWindowInsets = if (hideChrome) WindowInsets(0, 0, 0, 0) else WindowInsets.statusBars,
               topBar = {
-                if (!hideChrome) {
+                if (!hideChrome && currentTab != VaultTab.CLOUD_ARCADE) {
                   TopAppBar(
                     title = {
                       Text(
@@ -449,7 +466,7 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
                         scope.launch { repository.setSoundEnabled(!nextSound) }
                       }) {
                         Icon(
-                          imageVector = if (soundEngine.isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                          imageVector = if (soundEngine.isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                           contentDescription = "Toggle Audio",
                           tint = MaterialTheme.colorScheme.primary,
                           modifier = Modifier.size(20.dp)
@@ -506,20 +523,19 @@ fun GameVaultApp(initialIsOnline: Boolean = true, switchToOffline: Boolean = fal
         }
       }
 
-      // SECTION 1.4: Unobtrusive Floating Control when hideChrome == true
-      if (hideChrome) {
+      // SECTION 1.4: Unobtrusive Floating Control when local canvas game is active
+      if (activeGame != null) {
         Box(
           modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .padding(12.dp)
             .zIndex(999f),
           contentAlignment = Alignment.TopEnd
         ) {
           IconButton(
             onClick = {
-              isGameActive = false
-              activeGame = null
-              activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+              closeGame()
             },
             modifier = Modifier
               .size(34.dp)

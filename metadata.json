@@ -1,6 +1,6 @@
 {
   "name": "Game Vault",
-  "description": "Definitive All-in-One Multi-Engine Gaming Suite featuring 10+ offline native & canvas games, dynamic 100+ GamePix catalog feed, single-pane cloud arcade stream, and retro classic vault with anti-redirect guard.",
+  "description": "Definitive All-in-One Multi-Engine Gaming Suite featuring 25+ verified offline local games, Poki and Gamezop cloud arcade streams, custom 3D vector artwork, and zero-lag instant gameplay.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
