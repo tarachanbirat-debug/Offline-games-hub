@@ -3,7 +3,6 @@ package com.example.ui.screens
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.view.HapticFeedbackConstants
-import android.view.View
 import android.view.ViewGroup
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
@@ -11,13 +10,19 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -26,13 +31,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -48,21 +62,20 @@ data class LocalVaultGame(
     val tag: String,
     val isLandscape: Boolean,
     val glyph: String,
-    val colors: List<Color>,
     val assetPath: String
 ) : java.io.Serializable
 
 val TRUE_OFFLINE_CATALOG = listOf(
-    LocalVaultGame("subway-surfers", "Subway Surfers", "ACTION", false, "🏃", listOf(Color(0xFFE91E63), Color(0xFFFF5722)), "offline_games/subway-surfers-beijing.html"),
-    LocalVaultGame("tunnel-rush", "Tunnel Rush", "ARCADE", true, "🌀", listOf(Color(0xFF9C27B0), Color(0xFF673AB7)), "offline_games/tunnel-rush.html"),
-    LocalVaultGame("tomb-mask", "Tomb of the Mask", "ARCADE", false, "🎭", listOf(Color(0xFFFF9800), Color(0xFFFFC107)), "offline_games/tomb-of-the-mask.html"),
-    LocalVaultGame("vex-7", "Vex 7", "ACTION", true, "⚡", listOf(Color(0xFF00BCD4), Color(0xFF009688)), "offline_games/vex-7.html"),
-    LocalVaultGame("vex-8", "Vex 8", "ACTION", true, "🔥", listOf(Color(0xFFF44336), Color(0xFFE91E63)), "offline_games/vex-8.html"),
-    LocalVaultGame("tiny-fishing", "Tiny Fishing", "CASUAL", false, "🎣", listOf(Color(0xFF2196F3), Color(0xFF03A9F4)), "offline_games/tiny-fishing.html"),
-    LocalVaultGame("table-tennis", "Table Tennis", "SPORTS", false, "🏓", listOf(Color(0xFF4CAF50), Color(0xFF8BC34A)), "offline_games/table-tennis-world-tour.html"),
-    LocalVaultGame("temple-boom", "Temple of Boom", "ACTION", true, "💣", listOf(Color(0xFFFF5722), Color(0xFF795548)), "offline_games/temple-of-boom.html"),
-    LocalVaultGame("time-shooter-2", "Time Shooter 2", "ACTION", true, "🔫", listOf(Color(0xFF607D8B), Color(0xFF37474F)), "offline_games/time-shooter-2.html"),
-    LocalVaultGame("they-are-coming", "They Are Coming", "ACTION", true, "🧟", listOf(Color(0xFF388E3C), Color(0xFF1B5E20)), "offline_games/they-are-coming.html")
+    LocalVaultGame("subway-surfers", "Subway Surfers", "ACTION", false, "🏃", "offline_games/subway-surfers-beijing.html"),
+    LocalVaultGame("tunnel-rush", "Tunnel Rush", "ARCADE", true, "🌀", "offline_games/tunnel-rush.html"),
+    LocalVaultGame("tomb-mask", "Tomb of the Mask", "ARCADE", false, "🎭", "offline_games/tomb-of-the-mask.html"),
+    LocalVaultGame("vex-7", "Vex 7", "ACTION", true, "⚡", "offline_games/vex-7.html"),
+    LocalVaultGame("vex-8", "Vex 8", "ACTION", true, "🔥", "offline_games/vex-8.html"),
+    LocalVaultGame("tiny-fishing", "Tiny Fishing", "CASUAL", false, "🎣", "offline_games/tiny-fishing.html"),
+    LocalVaultGame("table-tennis", "Table Tennis", "SPORTS", false, "🏓", "offline_games/table-tennis-world-tour.html"),
+    LocalVaultGame("temple-boom", "Temple of Boom", "ACTION", true, "💣", "offline_games/temple-of-boom.html"),
+    LocalVaultGame("time-shooter-2", "Time Shooter 2", "ACTION", true, "🔫", "offline_games/time-shooter-2.html"),
+    LocalVaultGame("they-are-coming", "They Are Coming", "ACTION", true, "🧟", "offline_games/they-are-coming.html")
 )
 
 @Composable
@@ -104,6 +117,127 @@ fun OfflineVaultScreen() {
 
 @Composable
 fun GameCard(game: LocalVaultGame, onClick: () -> Unit) {
+    val view = LocalView.current
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .clickable {
+                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                onClick()
+            }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = game.glyph, fontSize = 28.sp)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF334155)
+                ) {
+                    Text(
+                        text = game.tag,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = game.title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Button(
+                onClick = {
+                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    onClick()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("PLAY NOW", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+fun ActiveGamePlayer(game: LocalVaultGame, onClose: () -> Unit) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    DisposableEffect(game) {
+        val originalOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        if (game.isLandscape) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        onDispose {
+            activity?.requestedOrientation = originalOrientation
+        }
+    }
+
+    BackHandler {
+        onClose()
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        AndroidView(
+            factory = { ctx ->
+                WebView(ctx).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.allowFileAccess = true
+                    settings.allowContentAccess = true
+                    settings.mediaPlaybackRequiresUserGesture = false
+                    settings.cacheMode = WebSettings.LOAD_NO_CACHE
+
+                    webChromeClient = WebChromeClient()
+                    webViewClient = object : WebViewClient() {
+                        override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                            return true
+                        }
+                    }
+                    loadUrl("file:///android_asset/" + game.assetPath)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopEnd)
+                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+        ) {
+            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+        }
+    }
+}
     val view = LocalView.current
     Card(
         shape = RoundedCornerShape(16.dp),
