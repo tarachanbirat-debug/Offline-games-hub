@@ -2,7 +2,6 @@ package com.example.ui.screens
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.pm.ActivityInfo
 import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
@@ -36,7 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.ui.theme.VaultThemePreset
 
 data class OfflineGame(
     val id: String,
@@ -56,7 +54,7 @@ data class OfflineGame(
 typealias OfflineGameItem = OfflineGame
 
 val TRUE_OFFLINE_GAMES = listOf(
-    // Original Core Games (Ensures Unit Tests Pass)
+    // 1. Core Games for Unit Tests
     OfflineGame(
         id = "runner",
         title = "Subway Dash 3D",
@@ -121,7 +119,7 @@ val TRUE_OFFLINE_GAMES = listOf(
         htmlContent = """<!DOCTYPE html><html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;"><h2>CYBER JETPACK</h2></body></html>"""
     ),
 
-    // 49 Offline Vault Engine Games
+    // 2. 49 Offline Vault Engine Games
     OfflineGame("subway-surfers", "Subway Surfers", "ACTION", false, "🏃", listOf(Color(0xFFE91E63), Color(0xFFFF5722)), "offline_games/subway-surfers-beijing.html"),
     OfflineGame("tunnel-rush", "Tunnel Rush", "ARCADE", true, "🌀", listOf(Color(0xFF9C27B0), Color(0xFF673AB7)), "offline_games/tunnel-rush.html"),
     OfflineGame("tomb-mask", "Tomb of the Mask", "ARCADE", false, "🎭", listOf(Color(0xFFFF9800), Color(0xFFFFC107)), "offline_games/tomb-of-the-mask.html"),
@@ -176,11 +174,16 @@ val TRUE_OFFLINE_GAMES = listOf(
 
 @Composable
 fun OfflineVaultScreen(
-    currentTheme: VaultThemePreset? = null,
-    onThemeChange: ((VaultThemePreset) -> Unit)? = null,
+    currentThemeId: String = "",
+    onThemeSelected: (String) -> Unit = {},
+    onGamePlayingStateChanged: (Boolean) -> Unit = {},
     onBack: (() -> Unit)? = null
 ) {
     var activeGame by rememberSaveable { mutableStateOf<OfflineGame?>(null) }
+
+    LaunchedEffect(activeGame) {
+        onGamePlayingStateChanged(activeGame != null)
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F172A))) {
         if (activeGame == null) {
@@ -213,7 +216,13 @@ fun OfflineVaultScreen(
                 }
             }
         } else {
-            ActiveGamePlayer(game = activeGame!!, onClose = { activeGame = null })
+            ActiveGamePlayer(
+                game = activeGame!!,
+                onClose = {
+                    activeGame = null
+                    onGamePlayingStateChanged(false)
+                }
+            )
         }
     }
 }
@@ -347,3 +356,4 @@ fun ActiveGamePlayer(game: OfflineGame, onClose: () -> Unit) {
         }
     }
 }
+
