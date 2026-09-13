@@ -1,6 +1,51 @@
-{
-  "name": "Game Vault",
-  "description": "Definitive All-in-One Multi-Engine Gaming Suite featuring 25+ verified offline local games, Poki and Gamezop cloud arcade streams, custom 3D vector artwork, and zero-lag instant gameplay.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
+[
+  {
+    "id": "subway-surfers",
+    "title": "Subway Surfers",
+    "category": "ACTION",
+    "orientation": "PORTRAIT",
+    "assetPath": "offline_games/subway-surfers-beijing.html"
+  },
+  {
+    "id": "tunnel-rush",
+    "title": "Tunnel Rush",
+    "category": "ARCADE",
+    "orientation": "LANDSCAPE",
+    "assetPath": "offline_games/tunnel-rush.html"
+  },
+  {
+    "id": "temple-of-boom",
+    "title": "Temple of Boom",
+    "category": "ACTION",
+    "orientation": "LANDSCAPE",
+    "assetPath": "offline_games/temple-of-boom.html"
+  },
+  {
+    "id": "tomb-of-the-mask",
+    "title": "Tomb of the Mask",
+    "category": "ARCADE",
+    "orientation": "PORTRAIT",
+    "assetPath": "offline_games/tomb-of-the-mask.html"
+  },
+  {
+    "id": "vex-7",
+    "title": "Vex 7",
+    "category": "ACTION",
+    "orientation": "LANDSCAPE",
+    "assetPath": "offline_games/vex-7.html"
+  },
+  {
+    "id": "tiny-fishing",
+    "title": "Tiny Fishing",
+    "category": "CASUAL",
+    "orientation": "PORTRAIT",
+    "assetPath": "offline_games/tiny-fishing.html"
+  },
+  {
+    "id": "table-tennis",
+    "title": "Table Tennis Tour",
+    "category": "SPORTS",
+    "orientation": "PORTRAIT",
+    "assetPath": "offline_games/table-tennis-world-tour.html"
+  }
+]
