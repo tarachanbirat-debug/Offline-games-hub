@@ -49,61 +49,182 @@ data class LocalVaultGame(
     val isLandscape: Boolean,
     val glyph: String,
     val colors: List<Color>,
-    val htmlCode: String
+    val assetPath: String
 ) : java.io.Serializable
 
 val TRUE_OFFLINE_CATALOG = listOf(
-    // 1. KNIFE HIT MASTER
-    LocalVaultGame(
-        id = "knife",
-        title = "Knife Hit Master",
-        tag = "ACTION",
-        isLandscape = false,
-        glyph = "🗡️🎯",
-        colors = listOf(Color(0xFFE11D48), Color(0xFFBE123C)),
-        htmlCode = """<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-        body { overflow: hidden; background: #070a14; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; touch-action: none; }
-        #h { width: 320px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 800; }
-        #sc { color: #38bdf8; font-size: 18px; text-shadow: 0 0 10px #38bdf8; }
-        canvas { background: radial-gradient(circle at 50% 30%, #1e293b, #090d16); border-radius: 16px; border: 1px solid rgba(225,29,72,0.4); box-shadow: 0 0 30px rgba(225,29,72,0.3); }
-        </style></head><body>
-        <div id="h"><span style="color:#f43f5e;letter-spacing:1px;">🗡️ KNIFE HIT MASTER</span><span id="sc">SCORE: 0</span></div>
-        <canvas id="c" width="320" height="460"></canvas>
-        <script>
-        var cv = document.getElementById('c'), x = cv.getContext('2d'), ang = 0, spd = 0.035, knives = [], curY = 400, throwing = false, score = 0, over = false, menu = true;
-        var particles = [];
-        function reset() { knives = []; score = 0; over = false; menu = false; curY = 400; throwing = false; document.getElementById('sc').innerText = 'SCORE: 0'; }
-        window.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            if (menu || over) { reset(); return; }
-            if (!throwing) throwing = true;
-        }, { passive: false });
-        function spawnSparks(px, py) {
-            for (var i = 0; i < 14; i++) {
-                var a = Math.random() * Math.PI * 2, sp = Math.random() * 4 + 2;
-                particles.push({ x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, c: '#f59e0b' });
+    LocalVaultGame("subway-surfers", "Subway Surfers", "ACTION", false, "🏃", listOf(Color(0xFFE91E63), Color(0xFFFF5722)), "offline_games/subway-surfers-beijing.html"),
+    LocalVaultGame("tunnel-rush", "Tunnel Rush", "ARCADE", true, "🌀", listOf(Color(0xFF9C27B0), Color(0xFF673AB7)), "offline_games/tunnel-rush.html"),
+    LocalVaultGame("tomb-mask", "Tomb of the Mask", "ARCADE", false, "🎭", listOf(Color(0xFFFF9800), Color(0xFFFFC107)), "offline_games/tomb-of-the-mask.html"),
+    LocalVaultGame("vex-7", "Vex 7", "ACTION", true, "⚡", listOf(Color(0xFF00BCD4), Color(0xFF009688)), "offline_games/vex-7.html"),
+    LocalVaultGame("vex-8", "Vex 8", "ACTION", true, "🔥", listOf(Color(0xFFF44336), Color(0xFFE91E63)), "offline_games/vex-8.html"),
+    LocalVaultGame("tiny-fishing", "Tiny Fishing", "CASUAL", false, "🎣", listOf(Color(0xFF2196F3), Color(0xFF03A9F4)), "offline_games/tiny-fishing.html"),
+    LocalVaultGame("table-tennis", "Table Tennis", "SPORTS", false, "🏓", listOf(Color(0xFF4CAF50), Color(0xFF8BC34A)), "offline_games/table-tennis-world-tour.html"),
+    LocalVaultGame("temple-boom", "Temple of Boom", "ACTION", true, "💣", listOf(Color(0xFFFF5722), Color(0xFF795548)), "offline_games/temple-of-boom.html"),
+    LocalVaultGame("time-shooter-2", "Time Shooter 2", "ACTION", true, "🔫", listOf(Color(0xFF607D8B), Color(0xFF37474F)), "offline_games/time-shooter-2.html"),
+    LocalVaultGame("they-are-coming", "They Are Coming", "ACTION", true, "🧟", listOf(Color(0xFF388E3C), Color(0xFF1B5E20)), "offline_games/they-are-coming.html")
+)
+
+@Composable
+fun OfflineVaultScreen() {
+    var activeGame by rememberSaveable { mutableStateOf<LocalVaultGame?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F172A))) {
+        if (activeGame == null) {
+            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                Text(
+                    text = "100% Offline Vault",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "Instant-Play Zero Data Engines",
+                    fontSize = 14.sp,
+                    color = Color(0xFF38BDF8),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(TRUE_OFFLINE_CATALOG) { game ->
+                        GameCard(game = game, onClick = { activeGame = game })
+                    }
+                }
+            }
+        } else {
+            ActiveGamePlayer(game = activeGame!!, onClose = { activeGame = null })
+        }
+    }
+}
+
+@Composable
+fun GameCard(game: LocalVaultGame, onClick: () -> Unit) {
+    val view = LocalView.current
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .clickable {
+                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                onClick()
+            }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = game.glyph, fontSize = 28.sp)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF334155)
+                ) {
+                    Text(
+                        text = game.tag,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = game.title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Button(
+                onClick = {
+                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    onClick()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("PLAY NOW", fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
-        function drawKnife(kx, ky, r) {
-            x.save(); x.translate(kx, ky); x.rotate(r);
-            x.fillStyle = '#e2e8f0'; x.beginPath(); x.moveTo(0, -32); x.lineTo(5, -8); x.lineTo(3, 0); x.lineTo(-3, 0); x.lineTo(-5, -8); x.closePath(); x.fill();
-            x.fillStyle = '#f59e0b'; x.fillRect(-6, 0, 12, 3);
-            x.fillStyle = '#1e293b'; x.fillRect(-2, 3, 4, 16);
-            x.restore();
+    }
+}
+
+@Composable
+fun ActiveGamePlayer(game: LocalVaultGame, onClose: () -> Unit) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    DisposableEffect(game) {
+        val originalOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        if (game.isLandscape) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
-        function loop() {
-            x.clearRect(0, 0, 320, 460);
-            if (menu) {
-                x.fillStyle = '#f43f5e'; x.font = 'bold 24px sans-serif'; x.textAlign = 'center'; x.fillText('KNIFE HIT MASTER', 160, 180);
-                x.fillStyle = '#94a3b8'; x.font = '14px sans-serif'; x.fillText('Precision Target Slasher', 160, 210);
-                x.fillStyle = '#38bdf8'; x.font = 'bold 18px sans-serif'; x.fillText('TAP TO START', 160, 260);
-                requestAnimationFrame(loop); return;
-            }
-            if (over) {
-                x.fillStyle = '#ef4444'; x.font = 'bold 28px sans-serif'; x.textAlign = 'center'; x.fillText('GAME OVER', 160, 190);
-                x.fillStyle = '#fff'; x.font = '18px sans-serif'; x.fillText('FINAL SCORE: ' + score, 160, 230);
-                x.fillStyle = '#38bdf8'; x.font = 'bold 16px sans-serif'; x.fillText('TAP TO RETRY', 160, 280);
+        onDispose {
+            activity?.requestedOrientation = originalOrientation
+        }
+    }
+
+    BackHandler {
+        onClose()
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        AndroidView(
+            factory = { ctx ->
+                WebView(ctx).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.allowFileAccess = true
+                    settings.allowContentAccess = true
+                    settings.mediaPlaybackRequiresUserGesture = false
+                    settings.cacheMode = WebSettings.LOAD_NO_CACHE
+                    
+                    webChromeClient = WebChromeClient()
+                    webViewClient = object : WebViewClient() {
+                        override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                            return true
+                        }
+                    }
+                    loadUrl("file:///android_asset/" + game.assetPath)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopEnd)
+                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+        ) {
+            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+        }
+    }
+}
                 requestAnimationFrame(loop); return;
             }
             ang += spd;
