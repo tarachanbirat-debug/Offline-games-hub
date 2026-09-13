@@ -1,1 +1,29 @@
+name: Sync Games From Release
+on:
+  workflow_dispatch:
 
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Games from Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p app/src/main/assets/offline_games
+          gh release download v1.0 --dir app/src/main/assets/offline_games --pattern "*.html"
+
+      - name: Commit Files to Assets
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/offline_games/
+          git commit -m "Add all release games to assets" || echo "No changes to commit"
+          git push
+          
