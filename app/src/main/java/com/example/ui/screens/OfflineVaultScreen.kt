@@ -128,7 +128,9 @@ fun getOfflineGamesList(): List<LocalVaultGame> {
 val TRUE_OFFLINE_CATALOG: List<LocalVaultGame> by lazy { getOfflineGamesList() }
 
 @Composable
-fun OfflineVaultScreen() {
+fun OfflineVaultScreen(
+    currentTheme: Any? = null
+) {
     var activeGame by rememberSaveable { mutableStateOf<LocalVaultGame?>(null) }
     val games = remember { getOfflineGamesList() }
 
@@ -300,4 +302,3 @@ fun ActiveGamePlayer(game: LocalVaultGame, onClose: () -> Unit) {
         }
     }
 }
-
